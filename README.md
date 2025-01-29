@@ -45,3 +45,4 @@ pip install -r requirements.txt
 The GPU calculations had a throughput (mcups) 335x more!
 
 ![final snapshot](results/result_16384_single.png)
+# mhd_jax
