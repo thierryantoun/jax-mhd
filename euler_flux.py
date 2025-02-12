@@ -4,6 +4,7 @@
 import os
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 import matplotlib.pyplot as plt
 import time
@@ -58,7 +59,7 @@ def get_gradient(f, dx):
 
 @jax.jit
 def extrapolate_to_face(f, f_dx, f_dy, dx):
-    """Extrapolate the field from face centers to faces using gradients"""
+    """Extrapolate the field from face centers to faces"""
 
     f_XL = jnp.roll(f, -1, axis=0)  
     f_XR = f 
@@ -81,8 +82,81 @@ def apply_fluxes(F, flux_F_X, flux_F_Y, dx, dt):
     return F
 
 
-@jax.jit
 def get_flux(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, P_L, P_R, gamma):
+    """Calculate fluxes between 2 states with local Lax-Friedrichs/Rusanov rule"""
+
+    # left and right energies
+    en_L = P_L / (gamma - 1) + 0.5 * rho_L * (vx_L**2 + vy_L**2)
+    en_R = P_R / (gamma - 1) + 0.5 * rho_R * (vx_R**2 + vy_R**2)
+
+    al = rho_L * jnp.sqrt(gamma * P_L / rho_L)
+    ar = rho_R * jnp.sqrt(gamma * P_R / rho_R)
+
+    aface = 1.1 * jnp.maximum(al,ar) # obtiens le maximum entre chaque al_ij et ar_ij
+
+    u_star = 0.5 * (vx_L + vx_R) - 0.5 * (P_R - P_L) / aface
+    p_star = 0.5 * (P_L + P_R) - 0.5 * (vx_R - vx_L) * aface
+
+    v_star = 0.5 * (vy_L + vy_R) 
+    # q_star = - 0.5 * (vy_R - vy_L) * aface
+
+    N = u_star.shape[0]
+    M = u_star.shape[1]
+
+    flux_Mass = jnp.zeros((N, M))
+    flux_Momx = jnp.zeros((N, M))
+    flux_Momy = jnp.zeros((N, M))
+    flux_Energy = jnp.zeros((N, M))
+
+    for i in range(N):
+        for j in range(M):  
+            if u_star[i, j] > 0:
+                flux_Mass = flux_Mass.at[i, j].set(u_star[i, j] * rho_L[i, j])
+                flux_Momx = flux_Momx.at[i, j].set(u_star[i, j] * vx_L[i, j] * rho_L[i, j] + p_star[i, j])
+                flux_Momy = flux_Momy.at[i, j].set(u_star[i, j] * vy_L[i, j] * rho_L[i, j])
+                flux_Energy = flux_Energy.at[i, j].set(u_star[i, j] * en_L[i, j] + p_star[i, j] * u_star[i, j])
+            else:
+                flux_Mass = flux_Mass.at[i, j].set(u_star[i, j] * rho_R[i, j])
+                flux_Momx = flux_Momx.at[i, j].set(u_star[i, j] * vx_R[i, j] * rho_R[i, j] + p_star[i, j])
+                flux_Momy = flux_Momy.at[i, j].set(u_star[i, j] * vy_R[i, j] * rho_R[i, j])
+                flux_Energy = flux_Energy.at[i, j].set(u_star[i, j] * en_R[i, j] + p_star[i, j] * u_star[i, j])
+   
+    # flux_Mass = jnp.where(
+    #     u_star > 0,
+    #     u_star * rho_L,
+    #     u_star * rho_R
+    # )
+
+    # flux_Momx = jnp.where(
+    #     u_star > 0,
+    #     u_star * vx_L * rho_L + p_star,
+    #     u_star * vx_R * rho_R + p_star
+    # )
+
+    # flux_Momy = jnp.where(
+    #     u_star > 0,
+    #     u_star * vy_L * rho_L, # + q_star,
+    #     u_star * vy_R * rho_R, # + q_star
+    # )
+
+    # flux_Energy = jnp.where(
+    #     u_star > 0,
+    #     u_star * en_L + p_star * u_star, # + q_star * v_star,
+    #     u_star * en_R + p_star * u_star, # + q_star * v_star,
+    # )
+
+    # mask = (u_star > 0).astype(u_star.dtype)
+
+    # # Calcul des flux
+    # flux_Mass  = u_star * (mask * rho_L + (1 - mask) * rho_R)
+    # flux_Momx  = u_star * (mask * vx_L * rho_L + (1 - mask) * vx_R * rho_R) + p_star
+    # flux_Momy  = u_star * (mask * vy_L * rho_L + (1 - mask) * vy_R * rho_R)
+    # flux_Energy = u_star * (mask * en_L + (1 - mask) * en_R + p_star)
+
+    return flux_Mass, flux_Momx, flux_Momy, flux_Energy
+
+@jax.jit
+def get_flux_old(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, P_L, P_R, gamma):
     """Calculate fluxes between 2 states with local Lax-Friedrichs/Rusanov rule"""
 
     # left and right energies
@@ -128,7 +202,7 @@ def update(Mass, Momx, Momy, Energy, vol, dx, gamma, courant_fac):
         dx / (jnp.sqrt(gamma * P / rho) + jnp.sqrt(vx**2 + vy**2))
     )
 
-    print("dt:",dt)
+    print("dt:", dt)
 
     # calculate gradients
     rho_dx, rho_dy = get_gradient(rho, dx)
@@ -143,10 +217,10 @@ def update(Mass, Momx, Momy, Energy, vol, dx, gamma, courant_fac):
     P_XL, P_XR, P_YL, P_YR = extrapolate_to_face(P, P_dx, P_dy, dx)
 
     # compute fluxes (local Lax-Friedrichs/Rusanov)
-    flux_Mass_X, flux_Momx_X, flux_Momy_X, flux_Energy_X = get_flux(
+    flux_Mass_X, flux_Momx_X, flux_Momy_X, flux_Energy_X = get_flux_old(
         rho_XL, rho_XR, vx_XL, vx_XR, vy_XL, vy_XR, P_XL, P_XR, gamma
     )
-    flux_Mass_Y, flux_Momy_Y, flux_Momx_Y, flux_Energy_Y = get_flux(
+    flux_Mass_Y, flux_Momy_Y, flux_Momx_Y, flux_Energy_Y = get_flux_old(
         rho_YL, rho_YR, vy_YL, vy_YR, vx_YL, vx_YR, P_YL, P_YR, gamma
     )
 
@@ -166,7 +240,7 @@ def main():
     N = args.resolution
     boxsize = 1.0
     gamma = 5.0 / 3.0  # ideal gas gamma
-    courant_fac = 0.4
+    courant_fac = 0.1
     t_stop = 2.0
     save_freq = 0.1
     save_animation_path = (
@@ -208,6 +282,7 @@ def main():
     n_iter = 0
     save_freq = 0.05
     while t < t_stop:
+    # for t in range(nt):
 
         # Time step
         Mass, Momx, Momy, Energy, dt, rho = update(
@@ -215,10 +290,11 @@ def main():
         )
 
         # determine if we should save the plot
-        save_plot = False
+        save_plot = True
+        output_counter += 1
         if t + dt > output_counter * save_freq:
             save_plot = True
-            output_counter += 1
+            # output_counter += 1
 
         # update time
         t += dt
