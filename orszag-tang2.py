@@ -51,11 +51,11 @@ def get_primitive(Mass, Momx, Momy, Energy, gamma, vol, Bx, By):
 def extrapolate_to_face(f):
     """Extrapolate the field from face centers to faces using gradients"""
 
-    f_XL = f  
-    f_XR = jnp.roll(f, -1, axis=0) 
+    f_XR = f  
+    f_XL = jnp.roll(f, 1, axis=0) 
 
-    f_YL = f 
-    f_YR = jnp.roll(f, -1, axis=1)
+    f_YR = f 
+    f_YL = jnp.roll(f, 1, axis=1)
 
     return f_XL, f_XR, f_YL, f_YR
 
@@ -64,14 +64,14 @@ def extrapolate_to_face(f):
 def apply_fluxes(F, flux_F_X, flux_F_Y, dx, dt):
     """Apply fluxes to conserved variables to update solution state"""
 
-    F += -dt * dx * flux_F_X
-    F += dt * dx * jnp.roll(flux_F_X, 1, axis=0)  # left/down roll
-    F += -dt * dx * flux_F_Y
-    F += dt * dx * jnp.roll(flux_F_Y, 1, axis=1)
+    F += (dt * dx) * flux_F_X
+    F += -(dt * dx) * jnp.roll(flux_F_X, -1, axis=0)  # left/down roll
+    F += (dt * dx) * flux_F_Y
+    F += -(dt * dx) * jnp.roll(flux_F_Y, -1, axis=1)
 
     return F
 
-
+    
 @jax.jit
 def get_flux_x(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, P_L, P_R, gamma, Bx_L, Bx_R, By_L, By_R):
     """Calculate fluxes between 2 states with local Lax-Friedrichs/Rusanov rule"""
@@ -95,11 +95,24 @@ def get_flux_x(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, P_L, P_R, gamma, Bx_L, Bx_R
     c02_R = gamma * P_R / rho_R
     ca2_R = (Bx_R**2 + By_R**2) / rho_R
     cap2x_R = Bx_R**2 / rho_R
+    # print("Bx_R:",Bx_R)
+    # print("Bx_L:",Bx_L)
+    # print("By_R:",By_R)
+    # print("By_L:",By_L)
+    # print("vy_R:",vy_R)
+    # print("vy_L:",vy_L)
+    # print("vx_R:",vx_R)
+    # print("vx_L:",vx_L)
+
+    # print("rhor:",rho_R)
+    # print("ca2R:",ca2_R)
     cmfx_R = jnp.sqrt(0.5*(c02_R+ca2_R)+0.5*jnp.sqrt((c02_R+ca2_R)*(c02_R+ca2_R)-4.*c02_R*cap2x_R))
 
     a_L = rho_L * cmfx_L
     a_R = rho_R * cmfx_R
     aface = 1.1 * jnp.maximum(a_L,a_R) # renvoie une matrice avec le maximum entre chaque al_ij et ar_ij
+
+    # print(aface)
 
     # Define the star states
     u_star = 0.5 * (vx_L + vx_R) - 0.5 * (Pmag_R - Pmag_L) / aface
@@ -141,6 +154,8 @@ def get_flux_x(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, P_L, P_R, gamma, Bx_L, Bx_R
         u_star * By_R - v_star * Bx_L
     )
 
+    # print("QmagL:",Qmag_L)
+
     return flux_Mass_X, flux_Momx_X, flux_Momy_X, flux_Energy_X, flux_Bx_X, flux_By_X
 
 @jax.jit
@@ -176,46 +191,46 @@ def get_flux_y(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, P_L, P_R, gamma, Bx_L, Bx_R
     u_star = 0.5 * (vy_L + vy_R) - 0.5 * (Pmag_R - Pmag_L) / aface
     p_star = 0.5 * (Pmag_L + Pmag_R) - 0.5 * (vy_R - vy_L) * aface
 
-    v_star = 0.5 * (vx_L + vy_R) - 0.5 * (Qmag_R - Qmag_L)/aface
+    v_star = 0.5 * (vx_L + vx_R) - 0.5 * (Qmag_R - Qmag_L)/aface
     q_star = 0.5 * (Qmag_L + Qmag_R) - 0.5 * (vx_R - vx_L) * aface
 
     # compute fluxes with upwind    
-    flux_Mass_y = jnp.where(
+    flux_Mass_Y = jnp.where(
         u_star > 0, 
         u_star * rho_L, 
         u_star * rho_R)
     
-    flux_Momx_y = jnp.where(
+    flux_Momx_Y = jnp.where(
         u_star > 0, 
         u_star * vx_L * rho_L + q_star, 
         u_star * vx_R * rho_R + q_star)
 
-    flux_Momy_y = jnp.where(
+    flux_Momy_Y = jnp.where(
         u_star > 0, 
         u_star * vy_L * rho_L + p_star, 
         u_star * vy_R * rho_R + p_star)
         
-    flux_Energy_y = jnp.where(
+    flux_Energy_Y = jnp.where(
         u_star > 0, 
         u_star * en_L + p_star * u_star + q_star * v_star, 
         u_star * en_R + p_star * u_star + q_star * v_star)
 
-    flux_Bx_y = jnp.where(
+    flux_Bx_Y = jnp.where(
         u_star > 0,
         u_star * Bx_L - v_star * By_R,
         u_star * Bx_R - v_star * By_L
     )
 
-    flux_By_y = jnp.where(
+    flux_By_Y = jnp.where(
         u_star > 0,
         u_star * By_L - u_star * By_R,
         u_star * By_R - u_star * By_L
     )
 
-    return flux_Mass_y, flux_Momx_y, flux_Momy_y, flux_Energy_y, flux_Bx_y, flux_By_y
+    return flux_Mass_Y, flux_Momx_Y, flux_Momy_Y, flux_Energy_Y, flux_Bx_Y, flux_By_Y
 
 
-@jax.jit
+
 def update(Mass, Momx, Momy, Energy, vol, dx, gamma, courant_fac, Bx, By):
     """Take a simulation timestep"""
 
@@ -254,6 +269,18 @@ def update(Mass, Momx, Momy, Energy, vol, dx, gamma, courant_fac, Bx, By):
         rho_YL, rho_YR, vx_YL, vx_YR, vy_YL, vy_YR, P_YL, P_YR, gamma, Bx_YL, Bx_YR, By_YL, By_YR
     )
 
+    # print("flux_Bx_X:",flux_Bx_X) 
+    # print("flux_By_X:",flux_By_X) 
+    # print("flux_Bx_Y:",flux_Bx_Y) 
+    # print("flux_By_Y:",flux_By_Y) 
+    # print("flux_Momx_X:",flux_Momx_X)
+    # print("flux_Momy_X:",flux_Momy_X)
+    # print("flux_Momx_Y:",flux_Momx_Y)
+    # print("flux_Momy_Y:",flux_Momy_Y)
+    # print("Energy_X:",flux_Energy_X)
+    # print("flux_Energy_Y:",flux_Energy_Y)
+    
+
     # update solution
     Mass = apply_fluxes(Mass, flux_Mass_X, flux_Mass_Y, dx, dt)
     Momx = apply_fluxes(Momx, flux_Momx_X, flux_Momx_Y, dx, dt)
@@ -263,38 +290,6 @@ def update(Mass, Momx, Momy, Energy, vol, dx, gamma, courant_fac, Bx, By):
     By = apply_fluxes(By, flux_By_X, flux_By_Y, dx, dt)
 
     return Mass, Momx, Momy, Energy, dt, rho, Bx, By
-
-def apply_periodic_boundary(Mass, Momx, Momy, Energy, Bx, By):
-    """Apply periodic boundary conditions"""
-    
-    Mass = Mass.at[0, :].set(Mass[-1, :]) 
-    Mass = Mass.at[-1, :].set(Mass[0, :]) 
-    Momx = Momx.at[0, :].set(Momx[-1, :])
-    Momx = Momx.at[-1, :].set(Momx[0, :])
-    Momy = Momy.at[0, :].set(Momy[-1, :])
-    Momy = Momy.at[-1, :].set(Momy[0, :])
-    Energy = Energy.at[0, :].set(Energy[-1, :])
-    Energy = Energy.at[-1, :].set(Energy[0, :])
-    Bx = Bx.at[0, :].set(Bx[-1, :])
-    Bx = Bx.at[-1, :].set(Bx[0, :])
-    By = By.at[0, :].set(By[-1, :])
-    By = By.at[-1, :].set(By[0, :])
-
-
-    Mass = Mass.at[:, 0].set(Mass[:, -1])   
-    Mass = Mass.at[:, -1].set(Mass[:, 0])   
-    Momx = Momx.at[:, 0].set(Momx[:, -1])
-    Momx = Momx.at[:, -1].set(Momx[:, 0])
-    Momy = Momy.at[:, 0].set(Momy[:, -1])
-    Momy = Momy.at[:, -1].set(Momy[:, 0])
-    Energy = Energy.at[:, 0].set(Energy[:, -1])
-    Energy = Energy.at[:, -1].set(Energy[:, 0])
-    Bx = Bx.at[:, 0].set(Bx[:, -1])
-    Bx = Bx.at[:, -1].set(Bx[:, 0])
-    By = By.at[:, 0].set(By[:, -1])
-    By = By.at[:, -1].set(By[:, 0])
-
-    return Mass, Momx, Momy, Energy, Bx, By
 
 
 def main():
@@ -317,6 +312,14 @@ def main():
     xlin = jnp.linspace(0.5 * dx, boxsize - 0.5 * dx, N)
     X, Y = jnp.meshgrid(xlin, xlin, indexing="ij")
 
+    # Generate Orszag-Tang initial conditions
+    rho = jnp.full_like(X, 25.0 / (36.0 * jnp.pi))
+    vx = - jnp.sin(2 * jnp.pi * Y)  
+    vy = jnp.sin(2 * jnp.pi * X)  
+    Bx = -jnp.sin(2 * jnp.pi * Y) / jnp.sqrt(4 * jnp.pi) 
+    By = jnp.sin(4 * jnp.pi * X) / jnp.sqrt(4 * jnp.pi) 
+    P = jnp.full_like(X, 5.0 / (12.0 * jnp.pi))
+
     # Generate Blast Initial Conditions
     # center_x, center_y = 0.5 * boxsize, 0.5 * boxsize 
     # radius = 0.2 
@@ -326,27 +329,8 @@ def main():
     # vx = jnp.zeros_like(X) 
     # vy = jnp.zeros_like(Y) 
     # Bx = vx
-    # By = vx
+    # By = vy
     # P = jnp.where(mask, 10.0 / (gamma - 1), 0.1 / (gamma - 1))
-
-    # Generate Orszag-Tang initial conditions
-    rho = jnp.full_like(X, 25.0 / (36.0 * jnp.pi))
-    vx = - jnp.sin(2 * jnp.pi * Y)  
-    vy = jnp.sin(2 * jnp.pi * X)  
-    Bx = -jnp.sin(2 * jnp.pi * Y) / jnp.sqrt(4 * jnp.pi) 
-    By = jnp.sin(4 * jnp.pi * X) / jnp.sqrt(4 * jnp.pi) 
-
-    P = jnp.full_like(X, 5.0 / (12.0 * jnp.pi))
-
-    # Generate Brio-Wu initial conditions
-    # x_interface = 0.5 * boxsize
-
-    # rho = jnp.where(X < x_interface, 1.0, 0.125)  
-    # vx = jnp.zeros_like(X)
-    # vy = jnp.zeros_like(X) 
-    # Bx = jnp.full_like(X, 0.75) 
-    # By = jnp.where(X < x_interface, 1.0, -1.0)
-    # P = jnp.where(X < x_interface, 1.0, 0.1)
 
     # Get conserved variables
     Mass, Momx, Momy, Energy, Bx, By = get_conserved(rho, vx, vy, P, gamma, vol, Bx, By)
@@ -363,20 +347,24 @@ def main():
     output_counter = 0
     n_iter = 0
     save_freq = 1.
-    nt = 1000
+    nt = 1
     # while t < t_stop:
     for it in range(nt):
-
-        time_list.append(t)
-        Bx_values.append(Bx[:,N//2])
 
         # Time step
         Mass, Momx, Momy, Energy, dt, rho, Bx, By = update(
             Mass, Momx, Momy, Energy, vol, dx, gamma, courant_fac, Bx, By
         )
 
-        # boundary conditions
-        Mass, Momx, Momy, Energy, Bx, By = apply_periodic_boundary(Mass, Momx, Momy, Energy, Bx, By)
+        # print("Momx:",Momx)
+
+
+        # print("Momx:",rho*vx)
+        # print("Momy:",rho*vy)
+        print("Bx:",Bx)
+        # print("By:",By)
+        # print("mass:",Mass)
+        
 
         # determine if we should save the plot
         save_plot = False
@@ -400,57 +388,13 @@ def main():
                 vmax=2.2,
             )
 
-            # # Print progress
-            # print("[it=" + str(n_iter) + " t=" + "{:.6f}".format(t) + "]")
-            # print(
-            #     "  saved state "
-            #     + str(output_counter).zfill(6)
-            #     + " of "
-            #     + str(int(jnp.ceil(t_stop / save_freq)))
-            # )
-
             # Print million updates per second
             cell_updates = X.shape[0] * X.shape[1] * n_iter
             total_time = time.time() - tic
             mcups = cell_updates / (1e6 * total_time)
             print("  million cell updates / second: ", mcups)
 
-    # jmid = N // 2
-
-    # t_values_np = np.array(time_list)
-    # x_values_np = np.array(X)
-    # By_values_np = np.array(By[:,jmid])
-    # rho_values_np = np.array(rho[:,jmid])
-
-    # plt.figure(1)
-    # plt.plot(t_values_np, Bx_values)
-    # plt.xlabel("t")
-    # plt.ylabel("BX")
-    # plt.title("Bx en fonction de t")
-    # plt.grid(True)
-    # plt.legend()
-    # plt.savefig("Bx.png")
-    # plt.show()
-
-    # plt.figure(2)
-    # plt.plot(x_values_np, By_values_np)
-    # plt.xlabel("x")
-    # plt.ylabel("Densité By")
-    # plt.grid(True)
-    # plt.legend()
-    # plt.savefig("By.png")
-    # plt.show()
-
-    # plt.figure(3)
-    # plt.plot(x_values_np, rho_values_np)
-    # plt.xlabel("x")
-    # plt.ylabel("Densité rho")
-    # plt.grid(True)
-    # plt.legend()
-    # plt.savefig("rho.png")
-    # plt.show()
-
-    print("Total time: ", total_time)
+    # print("Total time: ", total_time)
 
 
 if __name__ == "__main__":
