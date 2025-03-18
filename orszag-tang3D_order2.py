@@ -193,13 +193,13 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz):
     Bz_dx, Bz_dy, Bz_dz = get_gradient(Bz, dx)
 
     rho_prime = rho - 0.5 * dt * (vx * rho_dx + rho * vx_dx + vy * rho_dy + rho * vy_dy + vz * rho_dz + rho * vz_dz)
-    vx_prime = vx - 0.5 * dt * (vx * vx_dx + vy * vx_dy + vz * vx_dz + (1 / rho) * P_dx)
-    vy_prime = vy - 0.5 * dt * (vx * vy_dx + vy * vy_dy + vz * vy_dz + (1 / rho) * P_dy)
-    vz_prime = vz - 0.5 * dt * (vx * vz_dx + vy * vz_dy + vz * vz_dz + (1 / rho) * P_dz)
+    vx_prime = vx - 0.5 * dt * (vx * vx_dx + vy * vx_dy + vz * vx_dz + (1 / rho) * (P_dx - Bx * (Bx_dx + By_dy + Bz_dz) + By * (By_dx - Bx_dy) + Bz * (Bz_dx - Bx_dz)))
+    vy_prime = vy - 0.5 * dt * (vx * vy_dx + vy * vy_dy + vz * vy_dz + (1 / rho) * (P_dy - By * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dy - By_dx) + Bz * (Bx_dy - By_dz)))
+    vz_prime = vz - 0.5 * dt * (vx * vz_dx + vy * vz_dy + vz * vz_dz + (1 / rho) * (P_dz - Bz * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dz - Bz_dx) + By * (By_dz - Bz_dy)))
     P_prime = P - 0.5 * dt * (gamma * P * (vx_dx + vy_dy + vz_dz) + vx * P_dx + vy * P_dy + vz * P_dz)
-    Bx_prime = Bx - 0.5 * dt * (vx * Bx_dx + vy * Bx_dy + vz * Bx_dz)
-    By_prime = By - 0.5 * dt * (vx * By_dx + vy * By_dy + vz * By_dz)
-    Bz_prime = Bz - 0.5 * dt * (vx * Bz_dx + vy * Bz_dy + vz * Bz_dz)
+    Bx_prime = Bx - 0.5 * dt * (Bx * (vy_dy + vz_dz) - vx * (By_dy + Bz_dz) + vy * Bx_dy - By * vx_dy + vz * Bx_dz - Bz * vx_dz)
+    By_prime = By - 0.5 * dt * (By * (vx_dx + vz_dz) - vy * (Bx_dx + Bz_dz) + vx * By_dx - Bx * vy_dx + vz * By_dz - Bz * vy_dz)
+    Bz_prime = Bz - 0.5 * dt * (Bz * (vy_dy + vx_dx) - vz * (By_dy + Bx_dx) + vy * Bz_dy - By * vz_dy + vx * Bz_dx - Bx * vz_dx)
     
     rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = extrapolate_to_face(rho_prime, rho_dx, rho_dy, rho_dz, dx)
     vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = extrapolate_to_face(vx_prime, vx_dx, vx_dy, vx_dz, dx)
@@ -258,10 +258,10 @@ def main():
     vx = - jnp.sin(2 * jnp.pi * Y)  
     vx = jnp.full_like(X,0)
     vy = jnp.sin(2 * jnp.pi * X)
-    vz = 0.1 * jnp.sin(2 * jnp.pi * Z)
+    vz = jnp.full_like(Z, 0)
     Bx = -jnp.sin(2 * jnp.pi * Y) / jnp.sqrt(4 * jnp.pi) 
     By = jnp.sin(4 * jnp.pi * X) / jnp.sqrt(4 * jnp.pi) 
-    Bz = 0.1 * jnp.sin(2 * jnp.pi * Z) / jnp.sqrt(4 * jnp.pi)
+    Bz = jnp.full_like(Z, 0)
     P = jnp.full_like(X, 5.0 / (12.0 * jnp.pi))
 
     # Generate Blast Initial Conditions
