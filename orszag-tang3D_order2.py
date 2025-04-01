@@ -163,7 +163,7 @@ def get_flux(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, vz_L, vz_R, P_L, P_R, gamma, 
 
     return flux_Mass, flux_Momx, flux_Momy, flux_Momz, flux_Energy, flux_Bx, flux_By, flux_Bz
 
-
+@jax.jit
 def update(Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz):
 
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
@@ -180,8 +180,6 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz):
     valz = cmfz + jnp.abs(vz)
     val_max = jnp.maximum(jnp.maximum(valx, valy), valz)
     dt = courant_fac * dx / jnp.max(val_max)
-
-    print("dt:", dt)
 
     rho_dx, rho_dy, rho_dz = get_gradient(rho, dx)
     vx_dx, vx_dy, vx_dz = get_gradient(vx, dx)
@@ -264,20 +262,6 @@ def main():
     Bz = jnp.full_like(Z, 0)
     P = jnp.full_like(X, 5.0 / (12.0 * jnp.pi))
 
-    # Generate Blast Initial Conditions
-    # center_x, center_y, center_z = 0.5 * boxsize, 0.5 * boxsize, 0.5 * boxsize
-    # radius = 0.2 
-    # mask = (X - center_x) ** 2 + (Y - center_y) ** 2 + (Z - center_z) ** 2 < radius ** 2 
-
-    # rho = jnp.where(mask, 1.0, 1.2)  
-    # vx = jnp.zeros_like(X) 
-    # vy = jnp.zeros_like(Y) 
-    # vz = jnp.zeros_like(Z)
-    # Bx = vx
-    # By = vy
-    # Bz = vz
-    # P = jnp.where(mask, 10.0 / (gamma - 1), 0.1 / (gamma - 1))
-
     # Get conserved variables
     Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = get_conserved(rho, vx, vy, vz, P, gamma, Bx, By, Bz)
 
@@ -310,7 +294,6 @@ def main():
 
         # update time
         t += dt
-        print("t:",t)
 
         # update iteration counter
         n_iter += 1
