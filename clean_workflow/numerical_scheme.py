@@ -2,13 +2,24 @@ from modules import *
 from physics import*
 
 @jax.jit
+def minmod_1D(v_l, v_c, v_r, slope_type=1.0):
+    dlft = slope_type * (v_c - v_l)
+    drgt = slope_type * (v_r - v_c)
+    dcen = 0.5 * (v_r - v_l)
+    dsgn = jnp.where(dcen > 0, 1.0, -1.0)
+    
+    slop = jnp.minimum(jnp.abs(dlft), jnp.abs(drgt))
+    dlim = jnp.where(dlft * drgt < 0, 0.0, slop)
+    
+    return dsgn * jnp.minimum(dlim, jnp.abs(dcen))
+
+@jax.jit
 def get_gradient(f, dx):
     """Calculate the gradients of a field"""
 
-    # (right - left) / 2dx
-    f_dx = (jnp.roll(f, -1, axis=0) - jnp.roll(f, 1, axis=0)) / (2 * dx)
-    f_dy = (jnp.roll(f, -1, axis=1) - jnp.roll(f, 1, axis=1)) / (2 * dx)
-    f_dz = (jnp.roll(f, -1, axis=2) - jnp.roll(f, 1, axis=2)) / (2 * dx)
+    f_dx = minmod_1D(jnp.roll(f, 1, axis=0), f, jnp.roll(f, -1, axis=0))
+    f_dy = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
+    f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
 
     return f_dx, f_dy, f_dz
 

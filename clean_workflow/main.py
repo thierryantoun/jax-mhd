@@ -5,10 +5,13 @@ from modules import *
 from numerical_scheme import *
 from initial_conditions import *  
 import configparser
+import os
+import time
+import numpy as np
 
 
 config = configparser.ConfigParser()
-config.read("config.ini")
+config.read("orszag-tang.ini")
 
 IC = config["simulation"]["IC"]
 N = int(config["simulation"]["resolution"])
@@ -66,9 +69,37 @@ def main():
 
         # determine if we should save the plot
         save_plot = False
+
         if t > output_counter * save_freq:
             save_plot = True
             output_counter += 1
+
+        if save_plot:
+            # Convert to numpy arrays
+            rho_np = np.array(rho)
+            Bx_np = np.array(Bx)
+
+            # Create pyvista grid
+            import pyvista as pv
+            grid = pv.ImageData()
+
+            grid.dimensions = np.array(rho_np.shape) + 1  # VTK convention (cell-centered data)
+            grid.origin = (0, 0, 0)
+            grid.spacing = (dx, dx, dx)
+
+            # Add fields (flattened in Fortran order)
+            grid["rho"] = np.array(rho).flatten(order="F")
+            grid["Bx"] = np.array(Bx).flatten(order="F")
+            grid["By"] = np.array(By).flatten(order="F")
+            grid["Bz"] = np.array(Bz).flatten(order="F")
+            grid["vx"] = np.array(vx).flatten(order="F")
+            grid["vy"] = np.array(vy).flatten(order="F")
+            grid["vz"] = np.array(vz).flatten(order="F")
+            grid["P"] = np.array(P).flatten(order="F")
+
+            # Write to .vti
+            filename = os.path.join(save_animation_path, f"output_{output_counter:04d}.vti")
+            grid.save(filename)
 
         # update time
         t += dt
