@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # A simple example of solving the Euler equations with JAX
 # Philip Mocz (2024)
 
@@ -8,7 +9,27 @@ import configparser
 import os
 import time
 import numpy as np
+import jax
 
+from jax.experimental import mesh_utils
+from jax.sharding import Mesh, PartitionSpec, NamedSharding
+
+USE_CPU_ONLY = False # True  # False
+
+flags = os.environ.get("XLA_FLAGS", "")
+if USE_CPU_ONLY:
+    flags += " --xla_force_host_platform_device_count=8" #simulate 8 devices
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
+else:
+    # GPU flags
+    flags += (
+        # "--xla_gpu_enable_triton_softmax_fusion=true "
+        "--xla_gpu_triton_gemm_any=false "
+        # "--xla_gpu_enable_async_collectives=true "
+        "--xla_gpu_enable_latency_hiding_scheduler=true "
+        "--xla_gpu_enable_highest_priority_async_stream=true "
+    )
+os.environ["XLA_FLAGS"] = flags
 
 config = configparser.ConfigParser()
 config.read("orszag-tang.ini")
@@ -31,6 +52,29 @@ else:
 def main():
     """Finite Volume simulation"""
 
+    if not USE_CPU_ONLY:
+        # Initialize distributed execution
+        jax.distributed.initialize(coordinator_address="132.167.204.180:1234", num_processes=1, process_id=0)
+    
+    n_devices = jax.device_count()
+    mesh = Mesh(mesh_utils.create_device_mesh((n_devices, 1, 1)), ("x", "y", "z"))
+    sharding = NamedSharding(mesh, PartitionSpec("x", "y", "z"))
+
+    if jax.process_index() == 0:
+        for env_var in [
+            "SLURM_JOB_ID",
+            "SLURM_NTASKS",
+            "SLURM_NODELIST",
+            "SLURM_STEP_NODELIST",
+            "SLURM_STEP_GPUS",
+            "SLURM_GPUS",
+        ]:
+            print(f'{env_var}: {os.getenv(env_var,"")}')
+        print("Total number of processes: ", jax.process_count())
+        print("Total number of devices: ", jax.device_count())
+        print("List of devices: ", jax.devices())
+        print("Number of devices on this process: ", jax.local_device_count())
+
     save_animation_path = (
         "output_euler_" + str(N) + ("double" if use_double else "single")
     )
@@ -39,6 +83,19 @@ def main():
     dx = boxsize / N
     xlin = jnp.linspace(0.5 * dx, boxsize - 0.5 * dx, N)
     X, Y, Z = jnp.meshgrid(xlin, xlin, xlin, indexing="ij")
+
+    X = jax.lax.with_sharding_constraint(X, sharding)
+    Y = jax.lax.with_sharding_constraint(Y, sharding)
+    Z = jax.lax.with_sharding_constraint(Z, sharding)
+
+    # Allow to visualize how the shredding is done on X
+    if jax.process_index() == 0:
+        print("X (slice at Z=0):")
+        jax.debug.visualize_array_sharding(X[:, :, 0])
+        print("X (slice at Y=0):")
+        jax.debug.visualize_array_sharding(X[:, 0, :])
+        print("X (slice at X=0):")
+        jax.debug.visualize_array_sharding(X[0, :, :])
 
     # Generate Orszag-Tang initial conditions
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
@@ -108,4 +165,5 @@ def main():
         n_iter += 1
 
 if __name__ == "__main__":
+    # print("les devices sont:",jax.devices())
     main()
