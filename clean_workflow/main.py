@@ -5,6 +5,7 @@
 from modules import *
 from numerical_scheme import *
 from initial_conditions import *  
+from repartition_gpu import *
 import configparser
 import os
 import time
@@ -14,7 +15,7 @@ import jax
 from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
 
-USE_CPU_ONLY = False # True  # False
+USE_CPU_ONLY = True
 
 flags = os.environ.get("XLA_FLAGS", "")
 if USE_CPU_ONLY:
@@ -23,9 +24,7 @@ if USE_CPU_ONLY:
 else:
     # GPU flags
     flags += (
-        # "--xla_gpu_enable_triton_softmax_fusion=true "
         "--xla_gpu_triton_gemm_any=false "
-        # "--xla_gpu_enable_async_collectives=true "
         "--xla_gpu_enable_latency_hiding_scheduler=true "
         "--xla_gpu_enable_highest_priority_async_stream=true "
     )
@@ -52,12 +51,13 @@ else:
 def main():
     """Finite Volume simulation"""
 
-    if not USE_CPU_ONLY:
-        # Initialize distributed execution
-        jax.distributed.initialize(coordinator_address="132.167.204.180:1234", num_processes=1, process_id=0)
+    # if not USE_CPU_ONLY:
+    #     # Initialize distributed execution
+    #     jax.distributed.initialize(coordinator_address="132.167.204.180:1234", num_processes=1, process_id=0)
     
     n_devices = jax.device_count()
-    mesh = Mesh(mesh_utils.create_device_mesh((n_devices, 1, 1)), ("x", "y", "z"))
+    x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
+    mesh = Mesh(mesh_utils.create_device_mesh((x_opt, y_opt, z_opt)), ("x", "y", "z"))
     sharding = NamedSharding(mesh, PartitionSpec("x", "y", "z"))
 
     if jax.process_index() == 0:
@@ -108,6 +108,7 @@ def main():
         os.makedirs(save_animation_path, exist_ok=True)
 
     # Simulation Main Loop
+    global_start = time.time() 
     tic = time.time()
     t = 0
     time_list = []
@@ -118,7 +119,8 @@ def main():
     nt = 1000
     while t < t_stop:
     # for it in range(nt):
-
+    
+        step_start = time.time()
         # Time step
         Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
             Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
@@ -132,7 +134,7 @@ def main():
             output_counter += 1
 
         if save_plot:
-            # Convert to numpy arrays
+            # Convert to numpy arrays, transfer to CPU automatically
             rho_np = np.array(rho)
             Bx_np = np.array(Bx)
 
@@ -140,7 +142,7 @@ def main():
             import pyvista as pv
             grid = pv.ImageData()
 
-            grid.dimensions = np.array(rho_np.shape) + 1  # VTK convention (cell-centered data)
+            grid.dimensions = np.array(rho_np.shape) + 1 
             grid.origin = (0, 0, 0)
             grid.spacing = (dx, dx, dx)
 
@@ -163,6 +165,12 @@ def main():
 
         # update iteration counter
         n_iter += 1
+        step_end = time.time()
+        print(f"Iteration {n_iter:4d} — t = {t:.4f} — dt = {dt:.2e} — step time = {step_end - step_start:.2f}s")
+    
+    global_end = time.time()
+    print(f"\n Simulation complete after {n_iter} iterations")
+    print(f" Total runtime: {global_end - global_start:.2f} seconds")
 
 if __name__ == "__main__":
     # print("les devices sont:",jax.devices())

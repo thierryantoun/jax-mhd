@@ -133,6 +133,7 @@ def get_flux(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, vz_L, vz_R, P_L, P_R, gamma, 
 
     return flux_Mass, flux_Momx, flux_Momy, flux_Momz, flux_Energy, flux_Bx, flux_By, flux_Bz
 
+@jax.jit
 def update(Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz):
 
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
