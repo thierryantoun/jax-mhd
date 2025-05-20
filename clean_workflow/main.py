@@ -30,8 +30,11 @@ else:
     )
 os.environ["XLA_FLAGS"] = flags
 
+parser = argparse.ArgumentParser(description="Run MHD simulation")
+parser.add_argument("config_file", type=str, help="Path to the .ini configuration file")
+args = parser.parse_args()
 config = configparser.ConfigParser()
-config.read("orszag-tang.ini")
+config.read(args.config_file)
 
 IC = config["simulation"]["IC"]
 N = int(config["simulation"]["resolution"])

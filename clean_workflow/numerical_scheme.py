@@ -16,22 +16,17 @@ def minmod_1D(v_l, v_c, v_r, slope_type=1.0):
 @jax.jit
 def get_gradient(f, dx):
     """Calculate the gradients of a field"""
-
     f_dx = minmod_1D(jnp.roll(f, 1, axis=0), f, jnp.roll(f, -1, axis=0))
     f_dy = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
     f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
-
     return f_dx, f_dy, f_dz
 
 @jax.jit
 def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx):
-
     f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=0)
     f_YR, f_YL = f + f_dy * dx / 2, jnp.roll(f - f_dy * dx / 2, 1, axis=1)
     f_ZR, f_ZL = f + f_dz * dx / 2, jnp.roll(f - f_dz * dx / 2, 1, axis=2)
-
     return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
-
 
 @jax.jit
 def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dt):
@@ -150,7 +145,6 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz):
     valz = cmfz + jnp.abs(vz)
     val_max = jnp.maximum(jnp.maximum(valx, valy), valz)
     dt = courant_fac * dx / jnp.max(val_max)
-    print(dt)
 
     rho_dx, rho_dy, rho_dz = get_gradient(rho, dx)
     vx_dx, vx_dy, vx_dz = get_gradient(vx, dx)
@@ -162,14 +156,14 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz):
     Bz_dx, Bz_dy, Bz_dz = get_gradient(Bz, dx)
 
     rho_prime = rho - 0.5 * dt * (vx * rho_dx + rho * vx_dx + vy * rho_dy + rho * vy_dy + vz * rho_dz + rho * vz_dz)
-    vx_prime = vx - 0.5 * dt * (vx * vx_dx + vy * vx_dy + vz * vx_dz + (1 / rho) * (P_dx - Bx * (Bx_dx + By_dy + Bz_dz) + By * (By_dx - Bx_dy) + Bz * (Bz_dx - Bx_dz)))
-    vy_prime = vy - 0.5 * dt * (vx * vy_dx + vy * vy_dy + vz * vy_dz + (1 / rho) * (P_dy - By * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dy - By_dx) + Bz * (Bx_dy - By_dz)))
-    vz_prime = vz - 0.5 * dt * (vx * vz_dx + vy * vz_dy + vz * vz_dz + (1 / rho) * (P_dz - Bz * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dz - Bz_dx) + By * (By_dz - Bz_dy)))
+    vx_prime = vx - 0.5 * dt * (vx * vx_dx + vy * vx_dy + vz * vx_dz + (1 / rho) * (P_dx + By * (By_dx - Bx_dy) + Bz * (Bz_dx - Bx_dz)))
+    vy_prime = vy - 0.5 * dt * (vx * vy_dx + vy * vy_dy + vz * vy_dz + (1 / rho) * (P_dy + Bx * (Bx_dy - By_dx) + Bz * (Bx_dy - By_dz))) 
+    vz_prime = vz - 0.5 * dt * (vx * vz_dx + vy * vz_dy + vz * vz_dz + (1 / rho) * (P_dz + Bx * (Bx_dz - Bz_dx) + By * (By_dz - Bz_dy)))
     P_prime = P - 0.5 * dt * (gamma * P * (vx_dx + vy_dy + vz_dz) + vx * P_dx + vy * P_dy + vz * P_dz)
-    Bx_prime = Bx - 0.5 * dt * (Bx * (vy_dy + vz_dz) - vx * (By_dy + Bz_dz) + vy * Bx_dy - By * vx_dy + vz * Bx_dz - Bz * vx_dz)
-    By_prime = By - 0.5 * dt * (By * (vx_dx + vz_dz) - vy * (Bx_dx + Bz_dz) + vx * By_dx - Bx * vy_dx + vz * By_dz - Bz * vy_dz)
-    Bz_prime = Bz - 0.5 * dt * (Bz * (vy_dy + vx_dx) - vz * (By_dy + Bx_dx) + vy * Bz_dy - By * vz_dy + vx * Bz_dx - Bx * vz_dx)
-    
+    Bx_prime = Bx - 0.5 * dt * (Bx * (vy_dy + vz_dz) + vx * Bx_dx + vy * Bx_dy + vz * Bx_dz - By * vx_dy - Bz * vx_dz)
+    By_prime = By - 0.5 * dt * (By * (vx_dx + vz_dz) + vx * By_dx + vy * By_dy + vz * By_dz - Bx * vy_dx - Bz * vy_dz)
+    Bz_prime = Bz - 0.5 * dt * (Bz * (vy_dy + vx_dx) + vx * Bz_dx + vy * Bz_dy + vz * Bz_dz - By * vz_dy - Bx * vz_dx)
+
     rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = extrapolate_to_face(rho_prime, rho_dx, rho_dy, rho_dz, dx)
     vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = extrapolate_to_face(vx_prime, vx_dx, vx_dy, vx_dz, dx)
     vy_XL, vy_XR, vy_YL, vy_YR, vy_ZL, vy_ZR = extrapolate_to_face(vy_prime, vy_dx, vy_dy, vy_dz, dx)
@@ -195,6 +189,7 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz):
     Mass = apply_fluxes(Mass, flux_Mass_X, flux_Mass_Y, flux_Mass_Z, dx, dt)
     Momx = apply_fluxes(Momx, flux_Momx_X, flux_Momx_Y, flux_Momx_Z, dx, dt)
     Momy = apply_fluxes(Momy, flux_Momy_X, flux_Momy_Y, flux_Momy_Z,  dx, dt)
+    Momz = apply_fluxes(Momz, flux_Momz_X, flux_Momz_Y, flux_Momz_Z,  dx, dt)
     Energy = apply_fluxes(Energy, flux_Energy_X, flux_Energy_Y,flux_Energy_Z,  dx, dt)
     Bx = apply_fluxes(Bx, flux_Bx_X, flux_Bx_Y, flux_Bx_Z, dx, dt)
     By = apply_fluxes(By, flux_By_X, flux_By_Y, flux_By_Z, dx, dt)
