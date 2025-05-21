@@ -6,7 +6,7 @@ from modules import *
 from numerical_scheme import *
 from initial_conditions import *  
 from repartition_gpu import *
-import configparser
+from load_config import *
 import os
 import time
 import numpy as np
@@ -15,48 +15,42 @@ import jax
 from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
 
-USE_CPU_ONLY = True
-
-flags = os.environ.get("XLA_FLAGS", "")
-if USE_CPU_ONLY:
-    flags += " --xla_force_host_platform_device_count=8" #simulate 8 devices
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
-else:
-    # GPU flags
-    flags += (
-        "--xla_gpu_triton_gemm_any=false "
-        "--xla_gpu_enable_latency_hiding_scheduler=true "
-        "--xla_gpu_enable_highest_priority_async_stream=true "
-    )
-os.environ["XLA_FLAGS"] = flags
-
-parser = argparse.ArgumentParser(description="Run MHD simulation")
-parser.add_argument("config_file", type=str, help="Path to the .ini configuration file")
-args = parser.parse_args()
-config = configparser.ConfigParser()
-config.read(args.config_file)
-
-IC = config["simulation"]["IC"]
-N = int(config["simulation"]["resolution"])
-use_double = config.getboolean("simulation", "double")
-boxsize = float(config["simulation"]["boxsize"])
-gamma = float(config["simulation"]["gamma"])
-courant_fac = float(config["simulation"]["courant_fac"])
-t_stop = float(config["simulation"]["t_stop"])
-save_freq = float(config["simulation"]["save_freq"])
-
-if use_double:
-    print("Using double precision")
-    jax.config.update("jax_enable_x64", True)
-else:
-    print("Using single precision")
-
-def main():
+def main(args, config):
     """Finite Volume simulation"""
+    
+    USE_CPU_ONLY = args.cpu
 
-    # if not USE_CPU_ONLY:
-    #     # Initialize distributed execution
-    #     jax.distributed.initialize(coordinator_address="132.167.204.180:1234", num_processes=1, process_id=0)
+    flags = os.environ.get("XLA_FLAGS", "")
+    if USE_CPU_ONLY:
+        flags += " --xla_force_host_platform_device_count=8"
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    else:
+        flags += (
+            "--xla_gpu_triton_gemm_any=false "
+            "--xla_gpu_enable_latency_hiding_scheduler=true "
+            "--xla_gpu_enable_highest_priority_async_stream=true "
+        )
+    os.environ["XLA_FLAGS"] = flags
+    
+    IC = config["simulation"]["IC"]
+    N = int(config["simulation"]["resolution"])
+    use_double = config.getboolean("simulation", "double")
+    boxsize = float(config["simulation"]["boxsize"])
+    gamma = float(config["simulation"]["gamma"])
+    courant_fac = float(config["simulation"]["courant_fac"])
+    t_stop = float(config["simulation"]["t_stop"])
+    
+    if use_double:
+        print("Using double precision")
+        jax.config.update("jax_enable_x64", True)
+    else:
+        print("Using single precision")
+
+    if args.benchmark:
+        print("Benchmark mode enabled: disabling VTK output.")
+        save_freq = 0.0
+    else:
+        save_freq = float(config["simulation"]["save_freq"])
     
     n_devices = jax.device_count()
     x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
@@ -114,27 +108,18 @@ def main():
     global_start = time.time() 
     tic = time.time()
     t = 0
-    time_list = []
-    Bx_values = []
     output_counter = 0
     n_iter = 0
-    save_freq = 0.
-    nt = 1000
+    
     while t < t_stop:
-    # for it in range(nt):
     
         step_start = time.time()
         # Time step
         Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
             Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
         )
-
-        # determine if we should save the plot
-        save_plot = False
-
-        if t > output_counter * save_freq:
-            save_plot = True
-            output_counter += 1
+        
+        save_plot = (save_freq > 0.0 and t >= output_counter * save_freq)
 
         if save_plot:
             # Convert to numpy arrays, transfer to CPU automatically
@@ -162,6 +147,8 @@ def main():
             # Write to .vti
             filename = os.path.join(save_animation_path, f"output_{output_counter:04d}.vti")
             grid.save(filename)
+            
+            output_counter += 1
 
         # update time
         t += dt
@@ -172,9 +159,13 @@ def main():
         print(f"Iteration {n_iter:4d} — t = {t:.4f} — dt = {dt:.2e} — step time = {step_end - step_start:.2f}s")
     
     global_end = time.time()
-    print(f"\n Simulation complete after {n_iter} iterations")
-    print(f" Total runtime: {global_end - global_start:.2f} seconds")
+    total_time = global_end - global_start
+    mcups = (N**3 * n_iter) / (1e6 * total_time)
+
+    print(f"\nSimulation complete after {n_iter} iterations")
+    print(f"Total runtime: {total_time:.2f} seconds")
+    print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
 
 if __name__ == "__main__":
-    # print("les devices sont:",jax.devices())
-    main()
+    args, config = load_config_and_args()
+    main(args, config)
