@@ -3,8 +3,6 @@
 import os
 import time
 import jax
-import jax.numpy as jnp
-import numpy as np
 from functools import partial
 
 from modules import *
@@ -12,7 +10,8 @@ from numerical_scheme import update
 from initial_conditions import *
 from repartition_gpu import *
 from load_config import *
-from physics import get_conserved, get_primitive
+from physics import *
+
 from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
 
