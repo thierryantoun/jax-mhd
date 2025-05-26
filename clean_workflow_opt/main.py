@@ -67,9 +67,24 @@ def main(args, config):
     initial_state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, jnp.array(0.0), jnp.array(0))
 
     # Estimate max_steps conservatively
-    cmax = jnp.sqrt(gamma * jnp.max(P) / jnp.min(rho)) + jnp.max(jnp.abs(vx))
-    dt_est = courant_fac * dx / cmax
-    max_steps = int(jnp.ceil(t_stop / dt_est)) + 30
+    c02 = gamma * P / rho
+    ca2 = (Bx**2 + By**2 + Bz**2) / rho
+    cap2x = Bx**2 / rho
+    cap2y = By**2 / rho
+    cap2z = Bz**2 / rho
+
+    cmfx = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2x))
+    cmfy = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2y))
+    cmfz = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2z))
+
+    val_max = jnp.maximum(
+        jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)),
+        cmfz + jnp.abs(vz)
+    )
+
+    dt_est = courant_fac * dx / jnp.max(val_max)
+
+    max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
 
     @partial(jax.jit, static_argnames=["dx", "gamma", "courant_fac"])
     def scan_step(state, _, dx, gamma, courant_fac):
@@ -79,25 +94,61 @@ def main(args, config):
         )
         t += dt
         count += 1
-        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), dt
 
     global_start = time.time()
-    final_state, _ = jax.lax.scan(
+    final_state, dt = jax.lax.scan(
         lambda s, _: scan_step(s, _, dx, gamma, courant_fac),
         initial_state,
         None,
         length=max_steps
     )
     global_end = time.time()
-
-    _, _, _, _, _, _, _, _, t_final, n_iter = final_state
+        
+    t_final = final_state[8]
+    n_iter = final_state[9]
     total_time = global_end - global_start
     mcups = (N**3 * int(n_iter)) / (1e6 * total_time)
-
+    
     print("\nSimulation complete")
     print(f"Final time reached: {float(t_final):.4f}")
     print(f"Total runtime: {total_time:.2f} seconds")
     print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
+    
+    if args.benchmark == False:
+    
+        import pyvista as pv
+        import numpy as np
+
+        # Convertir les arrays JAX en NumPy
+        Bx_np = np.array(final_state[5])
+        By_np = np.array(final_state[6])
+        Bz_np = np.array(final_state[7])
+        rho_np = np.array(final_state[0])  # Mass / volume = rho (si unit vol)
+
+        # Calculer la densité si nécessaire
+        rho_np = rho_np  # ou Mass / dx**3 si tu veux une vraie densité
+
+        # Créer la grille PyVista
+        grid = pv.ImageData()
+
+        grid.dimensions = np.array(rho_np.shape) + 1 
+        grid.origin = (0, 0, 0)
+        grid.spacing = (dx, dx, dx)
+
+        # Taille et dimensions
+        grid.dimensions = np.array(Bx_np.shape) + 1  # +1 car c’est des cellules
+        grid.spacing = (dx, dx, dx)
+        grid.origin = (0, 0, 0)
+
+        # Ajouter les champs
+        grid["Bx"] = Bx_np.ravel(order="F")
+        grid["By"] = By_np.ravel(order="F")
+        grid["Bz"] = Bz_np.ravel(order="F")
+        grid["rho"] = rho_np.ravel(order="F")
+
+        # Export en fichier .vti
+        grid.save("output_final.vti")
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
