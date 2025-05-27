@@ -31,7 +31,9 @@ def main(args, config):
     os.environ["XLA_FLAGS"] = flags
 
     IC = config["simulation"]["IC"]
-    N = int(config["simulation"]["resolution"])
+    Nx = int(config["simulation"]["resolution_x"])
+    Ny = int(config["simulation"]["resolution_y"])
+    Nz = int(config["simulation"]["resolution_z"])
     use_double = config.getboolean("simulation", "double")
     boxsize = float(config["simulation"]["boxsize"])
     gamma = float(config["simulation"]["gamma"])
@@ -44,11 +46,15 @@ def main(args, config):
     else:
         print("Using single precision")
 
-    dx = boxsize / N
+    dx = boxsize / Nx
+    dy = boxsize / Ny
+    dz = boxsize / Nz
 
     # Domain
-    xlin = jnp.linspace(0.5 * dx, boxsize - 0.5 * dx, N)
-    X, Y, Z = jnp.meshgrid(xlin, xlin, xlin, indexing="ij")
+    xlin = jnp.linspace(0.5 * dx, boxsize - 0.5 * dx, Nx)
+    ylin = jnp.linspace(0.5 * dy, boxsize - 0.5 * dy, Ny)
+    zlin = jnp.linspace(0.5 * dz, boxsize - 0.5 * dz, Nz)
+    X, Y, Z = jnp.meshgrid(xlin, ylin, zlin, indexing="ij")
 
     n_devices = jax.device_count()
     x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
@@ -82,23 +88,23 @@ def main(args, config):
         cmfz + jnp.abs(vz)
     )
 
-    dt_est = courant_fac * dx / jnp.max(val_max)
+    dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
 
     max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
 
-    @partial(jax.jit, static_argnames=["dx", "gamma", "courant_fac"])
-    def scan_step(state, _, dx, gamma, courant_fac):
+    @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
+    def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
         Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
         Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
+            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
         )
         t += dt
         count += 1
-        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), dt
+        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
     global_start = time.time()
-    final_state, dt = jax.lax.scan(
-        lambda s, _: scan_step(s, _, dx, gamma, courant_fac),
+    final_state, _ = jax.lax.scan(
+        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
         initial_state,
         None,
         length=max_steps
@@ -108,7 +114,7 @@ def main(args, config):
     t_final = final_state[8]
     n_iter = final_state[9]
     total_time = global_end - global_start
-    mcups = (N**3 * int(n_iter)) / (1e6 * total_time)
+    mcups = (Nx*Ny*Nz * int(n_iter)) / (1e6 * total_time)
     
     print("\nSimulation complete")
     print(f"Final time reached: {float(t_final):.4f}")
@@ -138,7 +144,7 @@ def main(args, config):
 
         # Taille et dimensions
         grid.dimensions = np.array(Bx_np.shape) + 1  # +1 car c’est des cellules
-        grid.spacing = (dx, dx, dx)
+        grid.spacing = (dx, dy, dz)
         grid.origin = (0, 0, 0)
 
         # Ajouter les champs
