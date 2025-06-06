@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 import time
@@ -20,7 +20,6 @@ def main(args, config):
 
     flags = os.environ.get("XLA_FLAGS", "")
     if USE_CPU_ONLY:
-        flags += " --xla_force_host_platform_device_count=8"
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
     else:
         flags += (
@@ -109,15 +108,17 @@ def main(args, config):
         None,
         length=max_steps
     )
+    jax.block_until_ready(final_state)
     global_end = time.time()
         
     t_final = final_state[8]
     n_iter = final_state[9]
     total_time = global_end - global_start
-    mcups = (Nx*Ny*Nz * int(n_iter)) / (1e6 * total_time)
+    mcups = (Nx * Ny * Nz * int(n_iter)) / (1e6 * total_time)
     
     print("\nSimulation complete")
     print(f"Final time reached: {float(t_final):.4f}")
+    print("nb_iterations:", n_iter)
     print(f"Total runtime: {total_time:.2f} seconds")
     print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
     
