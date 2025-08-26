@@ -13,11 +13,13 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac):
         
         return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
 
-    c   = jnp.sqrt(gamma * P / rho)
-    dtx = dx / jnp.max(jnp.abs(vx) + c)
-    dty = dy / jnp.max(jnp.abs(vy) + c)
-    dtz = dz / jnp.max(jnp.abs(vz) + c)
-    dt  = courant_fac * jnp.minimum(jnp.minimum(dtx, dty), dtz)
+    cmf   = jnp.sqrt(gamma * P / rho)
+    valx = cmf + jnp.abs(vx)
+    valy = cmf + jnp.abs(vy)
+    valz = cmf + jnp.abs(vz)
+    val_max = jnp.maximum(jnp.maximum(valx, valy), valz)
+
+    dt = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
 
     rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = extrapolate_to_face(rho)
     vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = extrapolate_to_face(vx)
