@@ -127,7 +127,7 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
         flux_Momz = jnp.where(
             u_star > 0,
             u_star * vz_L * rho_L + r_star,
-            u_star * vz_R * rho_L + r_star)
+            u_star * vz_R * rho_R + r_star)
             
         flux_Energy = jnp.where(
             u_star > 0, 
