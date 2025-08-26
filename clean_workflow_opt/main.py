@@ -6,7 +6,7 @@ import jax
 from functools import partial
 
 from modules import *
-from numerical_scheme import update
+from numerical_scheme import *
 from initial_conditions import *
 from repartition_gpu import *
 from load_config import *

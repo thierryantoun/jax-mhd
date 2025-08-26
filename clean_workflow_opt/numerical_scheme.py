@@ -48,15 +48,24 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
     Bx_dx, Bx_dy, Bx_dz = get_gradient(Bx)
     By_dx, By_dy, By_dz = get_gradient(By)
     Bz_dx, Bz_dy, Bz_dz = get_gradient(Bz)
+    
+    rho_prime = rho - 0.5 * dt * (vx * rho_dx + rho * vx_dx + vy * rho_dy + rho * vy_dy + vz * rho_dz + rho * vz_dz)
+    vx_prime = vx - 0.5 * dt * (vx * vx_dx + vy * vx_dy + vz * vx_dz + (1 / rho) * (P_dx - Bx * (Bx_dx + By_dy + Bz_dz) + By * (By_dx - Bx_dy) + Bz * (Bz_dx - Bx_dz)))
+    vy_prime = vy - 0.5 * dt * (vx * vy_dx + vy * vy_dy + vz * vy_dz + (1 / rho) * (P_dy - By * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dy - By_dx) + Bz * (Bx_dy - By_dz)))
+    vz_prime = vz - 0.5 * dt * (vx * vz_dx + vy * vz_dy + vz * vz_dz + (1 / rho) * (P_dz - Bz * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dz - Bz_dx) + By * (By_dz - Bz_dy)))
+    P_prime = P - 0.5 * dt * (gamma * P * (vx_dx + vy_dy + vz_dz) + vx * P_dx + vy * P_dy + vz * P_dz)
+    Bx_prime = Bx - 0.5 * dt * (Bx * (vy_dy + vz_dz) - vx * (By_dy + Bz_dz) + vy * Bx_dy - By * vx_dy + vz * Bx_dz - Bz * vx_dz)
+    By_prime = By - 0.5 * dt * (By * (vx_dx + vz_dz) - vy * (Bx_dx + Bz_dz) + vx * By_dx - Bx * vy_dx + vz * By_dz - Bz * vy_dz)
+    Bz_prime = Bz - 0.5 * dt * (Bz * (vy_dy + vx_dx) - vz * (By_dy + Bx_dx) + vy * Bz_dy - By * vz_dy + vx * Bz_dx - Bx * vz_dx)
 
-    rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = extrapolate_to_face(rho, rho_dx, rho_dy, rho_dz, dx, dy, dz)
-    vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = extrapolate_to_face(vx, vx_dx, vx_dy, vx_dz, dx, dy, dz)
-    vy_XL, vy_XR, vy_YL, vy_YR, vy_ZL, vy_ZR = extrapolate_to_face(vy, vy_dx, vy_dy, vy_dz, dx, dy, dz)
-    vz_XL, vz_XR, vz_YL, vz_YR, vz_ZL, vz_ZR = extrapolate_to_face(vz, vz_dx, vz_dy, vz_dz, dx, dy, dz)
-    P_XL, P_XR, P_YL, P_YR, P_ZL, P_ZR = extrapolate_to_face(P, P_dx, P_dy, P_dz, dx, dy, dz)
-    Bx_XL, Bx_XR, Bx_YL, Bx_YR, Bx_ZL, Bx_ZR = extrapolate_to_face(Bx, Bx_dx, Bx_dy, Bx_dz, dx, dy, dz)
-    By_XL, By_XR, By_YL, By_YR, By_ZL, By_ZR = extrapolate_to_face(By, By_dx, By_dy, By_dz, dx, dy, dz)
-    Bz_XL, Bz_XR, Bz_YL, Bz_YR, Bz_ZL, Bz_ZR = extrapolate_to_face(Bz, Bz_dx, Bz_dy, Bz_dz, dx, dy, dz)
+    rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = extrapolate_to_face(rho_prime, rho_dx, rho_dy, rho_dz, dx, dy, dz)
+    vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = extrapolate_to_face(vx_prime, vx_dx, vx_dy, vx_dz, dx, dy, dz)
+    vy_XL, vy_XR, vy_YL, vy_YR, vy_ZL, vy_ZR = extrapolate_to_face(vy_prime, vy_dx, vy_dy, vy_dz, dx, dy, dz)
+    vz_XL, vz_XR, vz_YL, vz_YR, vz_ZL, vz_ZR = extrapolate_to_face(vz_prime, vz_dx, vz_dy, vz_dz, dx, dy, dz)
+    P_XL, P_XR, P_YL, P_YR, P_ZL, P_ZR = extrapolate_to_face(P_prime, P_dx, P_dy, P_dz, dx, dy, dz)
+    Bx_XL, Bx_XR, Bx_YL, Bx_YR, Bx_ZL, Bx_ZR = extrapolate_to_face(Bx_prime, Bx_dx, Bx_dy, Bx_dz, dx, dy, dz)
+    By_XL, By_XR, By_YL, By_YR, By_ZL, By_ZR = extrapolate_to_face(By_prime, By_dx, By_dy, By_dz, dx, dy, dz)
+    Bz_XL, Bz_XR, Bz_YL, Bz_YR, Bz_ZL, Bz_ZR = extrapolate_to_face(Bz_prime, Bz_dx, Bz_dy, Bz_dz, dx, dy, dz)
 
     def get_flux(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, vz_L, vz_R, P_L, P_R, gamma, Bx_L, Bx_R, By_L, By_R, Bz_L, Bz_R):
         """Calculate fluxes between 2 states with local Lax-Friedrichs/Rusanov rule"""
@@ -156,20 +165,17 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
         F += (dt / dz) * flux_F_Z
         F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=2)
         return F
-    
-    get_flux_batched = jax.vmap(get_flux, in_axes=(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, None,
-                                                0, 0, 0, 0, 0, 0))
 
 
-    flux_Mass_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux_batched(
+    flux_Mass_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux(
         rho_XL, rho_XR, vx_XL, vx_XR, vy_XL, vy_XR, vz_XL, vz_XR, P_XL, P_XR, gamma, Bx_XL, Bx_XR, By_XL, By_XR, Bz_XL, Bz_XR
     )
 
-    flux_Mass_Y, flux_Momy_Y, flux_Momx_Y, flux_Momz_Y, flux_Energy_Y, flux_By_Y, flux_Bx_Y, flux_Bz_Y = get_flux_batched(
+    flux_Mass_Y, flux_Momy_Y, flux_Momx_Y, flux_Momz_Y, flux_Energy_Y, flux_By_Y, flux_Bx_Y, flux_Bz_Y = get_flux(
         rho_YL, rho_YR, vy_YL, vy_YR, vx_YL, vx_YR, vz_YL, vz_YR, P_YL, P_YR, gamma, By_YL, By_YR, Bx_YL, Bx_YR,  Bz_YL, Bz_YR
     )
 
-    flux_Mass_Z, flux_Momz_Z, flux_Momy_Z, flux_Momx_Z, flux_Energy_Z, flux_Bz_Z, flux_By_Z, flux_Bx_Z = get_flux_batched(
+    flux_Mass_Z, flux_Momz_Z, flux_Momy_Z, flux_Momx_Z, flux_Energy_Z, flux_Bz_Z, flux_By_Z, flux_Bx_Z = get_flux(
         rho_ZL, rho_ZR, vz_ZL, vz_ZR, vy_ZL, vy_ZR, vx_ZL, vx_ZR, P_ZL, P_ZR, gamma, Bz_ZL, Bz_ZR, By_ZL, By_ZR, Bx_ZL, Bx_ZR
     )
 
@@ -183,4 +189,3 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
     Bz = apply_fluxes(Bz, flux_Bz_X, flux_Bz_Y, flux_Bz_Z, dx, dy, dz, dt)
 
     return Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz
-
