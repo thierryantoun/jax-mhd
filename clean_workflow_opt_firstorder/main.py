@@ -65,26 +65,20 @@ def main(args, config):
     Z = jax.lax.with_sharding_constraint(Z, sharding)
 
     # Initial conditions
-    rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
-    Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = get_conserved(rho, vx, vy, vz, P, gamma, Bx, By, Bz)
+    rho, vx, vy, vz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
+    Mass, Momx, Momy, Momz, Energy = get_conserved(rho, vx, vy, vz, P, gamma)
 
     # Initial state
-    initial_state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, jnp.array(0.0), jnp.array(0))
+    initial_state = (Mass, Momx, Momy, Momz, Energy, jnp.array(0.0), jnp.array(0))
 
     # Estimate max_steps conservatively
     c02 = gamma * P / rho
-    ca2 = (Bx**2 + By**2 + Bz**2) / rho
-    cap2x = Bx**2 / rho
-    cap2y = By**2 / rho
-    cap2z = Bz**2 / rho
 
-    cmfx = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2x))
-    cmfy = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2y))
-    cmfz = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2z))
+    cmf = jnp.sqrt(c02)
 
     val_max = jnp.maximum(
-        jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)),
-        cmfz + jnp.abs(vz)
+        jnp.maximum(cmf + jnp.abs(vx), cmf + jnp.abs(vy)),
+        cmf + jnp.abs(vz)
     )
 
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
@@ -93,13 +87,13 @@ def main(args, config):
 
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
-        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
-        Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+        Mass, Momx, Momy, Momz, Energy, t, count = state
+        Mass, Momx, Momy, Momz, Energy, dt, rho = update(
+            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac
         )
         t += dt
         count += 1
-        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+        return (Mass, Momx, Momy, Momz, Energy, t, count), None
 
     global_start = time.time()
     final_state, _ = jax.lax.scan(
@@ -111,8 +105,8 @@ def main(args, config):
     jax.block_until_ready(final_state)
     global_end = time.time()
         
-    t_final = final_state[8]
-    n_iter = final_state[9]
+    t_final = final_state[5]
+    n_iter = final_state[6]
     total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * int(n_iter)) / (1e6 * total_time)
     
@@ -121,41 +115,6 @@ def main(args, config):
     print("nb_iterations:", n_iter)
     print(f"Total runtime: {total_time:.2f} seconds")
     print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
-    
-    if args.benchmark == False:
-    
-        import pyvista as pv
-        import numpy as np
-
-        # Convertir les arrays JAX en NumPy
-        Bx_np = np.array(final_state[5])
-        By_np = np.array(final_state[6])
-        Bz_np = np.array(final_state[7])
-        rho_np = np.array(final_state[0])  # Mass / volume = rho (si unit vol)
-
-        # Calculer la densité si nécessaire
-        rho_np = rho_np  # ou Mass / dx**3 si tu veux une vraie densité
-
-        # Créer la grille PyVista
-        grid = pv.ImageData()
-
-        grid.dimensions = np.array(rho_np.shape) + 1 
-        grid.origin = (0, 0, 0)
-        grid.spacing = (dx, dx, dx)
-
-        # Taille et dimensions
-        grid.dimensions = np.array(Bx_np.shape) + 1  # +1 car c’est des cellules
-        grid.spacing = (dx, dy, dz)
-        grid.origin = (0, 0, 0)
-
-        # Ajouter les champs
-        grid["Bx"] = Bx_np.ravel(order="F")
-        grid["By"] = By_np.ravel(order="F")
-        grid["Bz"] = Bz_np.ravel(order="F")
-        grid["rho"] = rho_np.ravel(order="F")
-
-        # Export en fichier .vti
-        grid.save("output_final.vti")
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
