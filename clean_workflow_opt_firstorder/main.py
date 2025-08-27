@@ -85,23 +85,37 @@ def main(args, config):
 
     max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
 
-    @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
-    def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
+    # @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
+    # def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
+    #     Mass, Momx, Momy, Momz, Energy, t, count = state
+    #     Mass, Momx, Momy, Momz, Energy, dt, rho = update(
+    #         Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac
+    #     )
+    #     t += dt
+    #     count += 1
+    #     return (Mass, Momx, Momy, Momz, Energy, t, count), None
+
+    # global_start = time.time()
+    # final_state, _ = jax.lax.scan(
+    #     lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+    #     initial_state,
+    #     None,
+    #     length=max_steps
+    # )
+    
+    global_start = time.time()
+
+    state = initial_state
+    for _ in range(max_steps):
         Mass, Momx, Momy, Momz, Energy, t, count = state
         Mass, Momx, Momy, Momz, Energy, dt, rho = update(
             Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac
         )
         t += dt
         count += 1
-        return (Mass, Momx, Momy, Momz, Energy, t, count), None
+        state = (Mass, Momx, Momy, Momz, Energy, t, count)
 
-    global_start = time.time()
-    final_state, _ = jax.lax.scan(
-        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-        initial_state,
-        None,
-        length=max_steps
-    )
+    final_state = state
     jax.block_until_ready(final_state)
     global_end = time.time()
         

@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 from physics import get_primitive
 
-@jax.jit
+# @jax.jit
 def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac):
     rho, vx, vy, vz, P = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma)
 
@@ -20,6 +20,8 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac):
     val_max = jnp.maximum(jnp.maximum(valx, valy), valz)
 
     dt = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
+    
+    print("dt =", dt)
 
     rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = extrapolate_to_face(rho)
     vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = extrapolate_to_face(vx)
