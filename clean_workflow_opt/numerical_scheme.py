@@ -5,6 +5,8 @@ from physics import get_primitive
 @jax.jit
 def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
+    
+    U = jnp.stack([rho, P, vx, vy, vz, Bx, By, Bz], axis=0)
 
     def minmod_1D(v_l, v_c, v_r):
         dlft = v_c - v_l
@@ -17,15 +19,15 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
 
     def get_gradient(f):
         """Calculate the gradients of a field"""
-        f_dx = minmod_1D(jnp.roll(f, 1, axis=0), f, jnp.roll(f, -1, axis=0))
-        f_dy = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
-        f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
+        f_dx = minmod_1D(jnp.roll(f, 1, axis=0), f, jnp.roll(f, -1, axis=1))
+        f_dy = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=2))
+        f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=3))
         return f_dx, f_dy, f_dz
 
     def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
-        f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=0)
-        f_YR, f_YL = f + f_dy * dy / 2, jnp.roll(f - f_dy * dy / 2, 1, axis=1)
-        f_ZR, f_ZL = f + f_dz * dz / 2, jnp.roll(f - f_dz * dz / 2, 1, axis=2)
+        f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=1)
+        f_YR, f_YL = f + f_dy * dy / 2, jnp.roll(f - f_dy * dy / 2, 1, axis=2)
+        f_ZR, f_ZL = f + f_dz * dz / 2, jnp.roll(f - f_dz * dz / 2, 1, axis=3)
         
         return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
 
@@ -39,33 +41,59 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
     cmfz = jnp.sqrt(0.5*(c02+ca2) + 0.5*jnp.sqrt((c02+ca2)**2 - 4*c02*cap2z))
     val_max = jnp.maximum(jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)), cmfz + jnp.abs(vz))
     dt = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
-
-    rho_dx, rho_dy, rho_dz = get_gradient(rho)
-    vx_dx, vx_dy, vx_dz = get_gradient(vx)
-    vy_dx, vy_dy, vy_dz = get_gradient(vy)
-    vz_dx, vz_dy, vz_dz = get_gradient(vz)
-    P_dx, P_dy, P_dz = get_gradient(P)
-    Bx_dx, Bx_dy, Bx_dz = get_gradient(Bx)
-    By_dx, By_dy, By_dz = get_gradient(By)
-    Bz_dx, Bz_dy, Bz_dz = get_gradient(Bz)
     
-    rho_prime = rho - 0.5 * dt * (vx * rho_dx + rho * vx_dx + vy * rho_dy + rho * vy_dy + vz * rho_dz + rho * vz_dz)
-    vx_prime = vx - 0.5 * dt * (vx * vx_dx + vy * vx_dy + vz * vx_dz + (1 / rho) * (P_dx - Bx * (Bx_dx + By_dy + Bz_dz) + By * (By_dx - Bx_dy) + Bz * (Bz_dx - Bx_dz)))
-    vy_prime = vy - 0.5 * dt * (vx * vy_dx + vy * vy_dy + vz * vy_dz + (1 / rho) * (P_dy - By * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dy - By_dx) + Bz * (Bx_dy - By_dz)))
-    vz_prime = vz - 0.5 * dt * (vx * vz_dx + vy * vz_dy + vz * vz_dz + (1 / rho) * (P_dz - Bz * (Bx_dx + By_dy + Bz_dz) + Bx * (Bx_dz - Bz_dx) + By * (By_dz - Bz_dy)))
-    P_prime = P - 0.5 * dt * (gamma * P * (vx_dx + vy_dy + vz_dz) + vx * P_dx + vy * P_dy + vz * P_dz)
-    Bx_prime = Bx - 0.5 * dt * (Bx * (vy_dy + vz_dz) - vx * (By_dy + Bz_dz) + vy * Bx_dy - By * vx_dy + vz * Bx_dz - Bz * vx_dz)
-    By_prime = By - 0.5 * dt * (By * (vx_dx + vz_dz) - vy * (Bx_dx + Bz_dz) + vx * By_dx - Bx * vy_dx + vz * By_dz - Bz * vy_dz)
-    Bz_prime = Bz - 0.5 * dt * (Bz * (vy_dy + vx_dx) - vz * (By_dy + Bx_dx) + vy * Bz_dy - By * vz_dy + vx * Bz_dx - Bx * vz_dx)
+    Ux, Uy, Uz = get_gradient(U)
+    rho_dx, P_dx,  vx_dx, vy_dx, vz_dx, Bx_dx, By_dx, Bz_dx = Ux
+    rho_dy, P_dy,  vx_dy, vy_dy, vz_dy, Bx_dy, By_dy, Bz_dy = Uy
+    rho_dz, P_dz,  vx_dz, vy_dz, vz_dz, Bx_dz, By_dz, Bz_dz = Uz
+    
+    div_v = vx_dx + vy_dy + vz_dz
+    v = jnp.stack([vx,vy,vz],axis=0)
+    B = jnp.stack([Bx,By,Bz],axis=0)
+    r = 1.0 / rho
+    
+    grad_rho = jnp.stack([rho_dx, rho_dy, rho_dz], axis=0)
+    grad_p  = jnp.stack([P_dx,   P_dy,   P_dz  ], axis=0)
 
-    rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = extrapolate_to_face(rho_prime, rho_dx, rho_dy, rho_dz, dx, dy, dz)
-    vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = extrapolate_to_face(vx_prime, vx_dx, vx_dy, vx_dz, dx, dy, dz)
-    vy_XL, vy_XR, vy_YL, vy_YR, vy_ZL, vy_ZR = extrapolate_to_face(vy_prime, vy_dx, vy_dy, vy_dz, dx, dy, dz)
-    vz_XL, vz_XR, vz_YL, vz_YR, vz_ZL, vz_ZR = extrapolate_to_face(vz_prime, vz_dx, vz_dy, vz_dz, dx, dy, dz)
-    P_XL, P_XR, P_YL, P_YR, P_ZL, P_ZR = extrapolate_to_face(P_prime, P_dx, P_dy, P_dz, dx, dy, dz)
-    Bx_XL, Bx_XR, Bx_YL, Bx_YR, Bx_ZL, Bx_ZR = extrapolate_to_face(Bx_prime, Bx_dx, Bx_dy, Bx_dz, dx, dy, dz)
-    By_XL, By_XR, By_YL, By_YR, By_ZL, By_ZR = extrapolate_to_face(By_prime, By_dx, By_dy, By_dz, dx, dy, dz)
-    Bz_XL, Bz_XR, Bz_YL, Bz_YR, Bz_ZL, Bz_ZR = extrapolate_to_face(Bz_prime, Bz_dx, Bz_dy, Bz_dz, dx, dy, dz)
+    grad_vx = jnp.stack([vx_dx,  vx_dy,  vx_dz ], axis=0)
+    grad_vy = jnp.stack([vy_dx,  vy_dy,  vy_dz ], axis=0)
+    grad_vz = jnp.stack([vz_dx,  vz_dy,  vz_dz ], axis=0)
+
+    grad_Bx = jnp.stack([Bx_dx,  Bx_dy,  Bx_dz ], axis=0)
+    B_dx = jnp.stack([Bx_dx,  By_dx,  Bz_dx ], axis=0)
+    
+    grad_By = jnp.stack([By_dx,  By_dy,  By_dz ], axis=0)
+    B_dy = jnp.stack([Bx_dy,  By_dy,  Bz_dy ], axis=0)
+    
+    grad_Bz = jnp.stack([Bz_dx,  Bz_dy,  Bz_dz ], axis=0)
+    B_dz = jnp.stack([Bx_dz,  By_dz,  Bz_dz ], axis=0)
+    
+    def dot(a, b):
+        return jnp.sum(a * b, axis=0)
+    
+    rho_prime = rho - 0.5 * dt * (rho * div_v + dot(v, grad_rho))
+    P_prime = P - 0.5 * dt * (gamma * P * div_v + dot(v, grad_p))
+    
+    vx_prime = vx - 0.5 * dt * (dot(v, grad_vx) + r * (P_dx + dot(B_dx,B) - dot(grad_Bx,B)))
+    vy_prime = vy - 0.5 * dt * (dot(v, grad_vy) + r * (P_dy + dot(B_dy,B) - dot(grad_By,B)))
+    vz_prime = vz - 0.5 * dt * (dot(v, grad_vz) + r * (P_dz + dot(B_dz,B) - dot(grad_Bz,B)))
+    
+    Bx_prime = Bx - 0.5 * dt * (Bx * div_v + dot(v, grad_Bx) - dot(B, grad_vx))
+    By_prime = By - 0.5 * dt * (By * div_v + dot(v, grad_By) - dot(B, grad_vy))
+    Bz_prime = Bz - 0.5 * dt * (Bz * div_v + dot(v, grad_Bz) - dot(B, grad_vz))
+    
+    U_prime = jnp.stack([rho_prime, P_prime, vx_prime, vy_prime, vz_prime, Bx_prime, By_prime, Bz_prime], axis=0)
+
+    U_XL, U_XR, U_YL, U_YR, U_ZL, U_ZR = extrapolate_to_face(U_prime, Ux, Uy, Uz, dx, dy, dz)
+
+    rho_XL, rho_XR, rho_YL, rho_YR, rho_ZL, rho_ZR = U_XL[0], U_XR[0], U_YL[0], U_YR[0], U_ZL[0], U_ZR[0]
+    P_XL, P_XR, P_YL, P_YR, P_ZL, P_ZR = U_XL[1], U_XR[1], U_YL[1], U_YR[1], U_ZL[1], U_ZR[1]
+    vx_XL, vx_XR, vx_YL, vx_YR, vx_ZL, vx_ZR = U_XL[2], U_XR[2], U_YL[2], U_YR[2], U_ZL[2], U_ZR[2]
+    vy_XL, vy_XR, vy_YL, vy_YR, vy_ZL, vy_ZR = U_XL[3], U_XR[3], U_YL[3], U_YR[3], U_ZL[3], U_ZR[3]
+    vz_XL, vz_XR, vz_YL, vz_YR, vz_ZL, vz_ZR = U_XL[4], U_XR[4], U_YL[4], U_YR[4], U_ZL[4], U_ZR[4]
+    Bx_XL, Bx_XR, Bx_YL, Bx_YR, Bx_ZL, Bx_ZR = U_XL[5], U_XR[5], U_YL[5], U_YR[5], U_ZL[5], U_ZR[5]
+    By_XL, By_XR, By_YL, By_YR, By_ZL, By_ZR = U_XL[6], U_XR[6], U_YL[6], U_YR[6], U_ZL[6], U_ZR[6]
+    Bz_XL, Bz_XR, Bz_YL, Bz_YR, Bz_ZL, Bz_ZR = U_XL[7], U_XR[7], U_YL[7], U_YR[7], U_ZL[7], U_ZR[7]
 
     def get_flux(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, vz_L, vz_R, P_L, P_R, gamma, Bx_L, Bx_R, By_L, By_R, Bz_L, Bz_R):
         """Calculate fluxes between 2 states with local Lax-Friedrichs/Rusanov rule"""
