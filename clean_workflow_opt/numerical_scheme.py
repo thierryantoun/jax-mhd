@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 from physics import get_primitive
+from roll import shift_left, shift_right
 
 @jax.jit
 def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
@@ -17,13 +18,27 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
         dlim = jnp.where(dlft * drgt < 0, 0.0, slop)
         return dsgn * jnp.minimum(jnp.abs(dcen), dlim)
 
+    # def get_gradient(f):
+    #     """Calculate the gradients of a field"""
+    #     f_dx = minmod_1D(shift_left(f, axis=1), f, shift_right(f,axis=1))
+    #     f_dy = minmod_1D(shift_left(f, axis=2), f, shift_right(f,axis=2))
+    #     f_dz = minmod_1D(shift_left(f, axis=3), f, shift_right(f,axis=3))
+    #     return f_dx, f_dy, f_dz
+    
     def get_gradient(f):
         """Calculate the gradients of a field"""
-        f_dx = minmod_1D(jnp.roll(f, 1, axis=0), f, jnp.roll(f, -1, axis=1))
-        f_dy = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=2))
-        f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=3))
+        f_dx = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
+        f_dy = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
+        f_dz = minmod_1D(jnp.roll(f, 1, axis=3), f, jnp.roll(f, -1, axis=3))
         return f_dx, f_dy, f_dz
 
+    # def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
+    #     f_XR, f_XL = f + f_dx * dx / 2, shift_left(f - f_dx * dx / 2, axis=1)
+    #     f_YR, f_YL = f + f_dy * dy / 2, shift_left(f - f_dy * dy / 2, axis=2)
+    #     f_ZR, f_ZL = f + f_dz * dz / 2, shift_left(f - f_dz * dz / 2, axis=3)
+        
+    #     return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
+    
     def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
         f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=1)
         f_YR, f_YL = f + f_dy * dy / 2, jnp.roll(f - f_dy * dy / 2, 1, axis=2)
@@ -183,6 +198,17 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
 
         return flux_Mass, flux_Momx, flux_Momy, flux_Momz, flux_Energy, flux_Bx, flux_By, flux_Bz
 
+    # def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
+    #     F += (dt / dx) * flux_F_X
+    #     F += -(dt / dx) * shift_right(flux_F_X, axis=0)
+        
+    #     F += (dt / dy) * flux_F_Y
+    #     F += -(dt / dy) * shift_right(flux_F_Y, axis=1)
+        
+    #     F += (dt / dz) * flux_F_Z
+    #     F += -(dt / dz) * shift_right(flux_F_Z, axis=2)
+    #     return F
+
     def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
         F += (dt / dx) * flux_F_X
         F += -(dt / dx) * jnp.roll(flux_F_X, -1, axis=0)
@@ -193,7 +219,6 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
         F += (dt / dz) * flux_F_Z
         F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=2)
         return F
-
 
     flux_Mass_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux(
         rho_XL, rho_XR, vx_XL, vx_XR, vy_XL, vy_XR, vz_XL, vz_XR, P_XL, P_XR, gamma, Bx_XL, Bx_XR, By_XL, By_XR, Bz_XL, Bz_XR
