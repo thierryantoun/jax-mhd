@@ -240,6 +240,15 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     
     # U_conserved = apply_fluxes(U_conserved, Flux_X, Flux_Y, Flux_Z, dx, dy, dz, dt)
     
+    # rho = U_conserved[0]
+    # Momx = U_conserved[1]
+    # Momy = U_conserved[2]
+    # Momz = U_conserved[3]
+    # Energy = U_conserved[4]
+    # Bx = U_conserved[5]
+    # By = U_conserved[6]
+    # Bz = U_conserved[7]
+    
     rho = apply_fluxes(rho, flux_rho_X, flux_rho_Y, flux_rho_Z, dx, dy, dz, dt)
     Momx = apply_fluxes(Momx, flux_Momx_X, flux_Momx_Y, flux_Momx_Z, dx, dy, dz, dt)
     Momy = apply_fluxes(Momy, flux_Momy_X, flux_Momy_Y, flux_Momy_Z, dx, dy, dz, dt)
