@@ -4,10 +4,12 @@ from physics import get_primitive
 from roll import shift_left, shift_right
 
 @jax.jit
-def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
-    rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
+def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
     
-    U = jnp.stack([rho, P, vx, vy, vz, Bx, By, Bz], axis=0)
+    rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(rho, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
+    
+    U_primitive = jnp.stack([rho, P, vx, vy, vz, Bx, By, Bz], axis=0)
+    U_conserved = jnp.stack([rho, Momx, Momy, Momz, Energy, Bx, By, Bz], axis=0)
 
     def minmod_1D(v_l, v_c, v_r):
         dlft = v_c - v_l
@@ -18,33 +20,33 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
         dlim = jnp.where(dlft * drgt < 0, 0.0, slop)
         return dsgn * jnp.minimum(jnp.abs(dcen), dlim)
 
-    def get_gradient(f):
-        """Calculate the gradients of a field"""
-        f_dx = minmod_1D(shift_left(f, axis=1), f, shift_right(f,axis=1))
-        f_dy = minmod_1D(shift_left(f, axis=2), f, shift_right(f,axis=2))
-        f_dz = minmod_1D(shift_left(f, axis=3), f, shift_right(f,axis=3))
-        return f_dx, f_dy, f_dz
-    
     # def get_gradient(f):
     #     """Calculate the gradients of a field"""
-    #     f_dx = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
-    #     f_dy = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
-    #     f_dz = minmod_1D(jnp.roll(f, 1, axis=3), f, jnp.roll(f, -1, axis=3))
+    #     f_dx = minmod_1D(shift_left(f, axis=1), f, shift_right(f,axis=1))
+    #     f_dy = minmod_1D(shift_left(f, axis=2), f, shift_right(f,axis=2))
+    #     f_dz = minmod_1D(shift_left(f, axis=3), f, shift_right(f,axis=3))
     #     return f_dx, f_dy, f_dz
+    
+    def get_gradient(f):
+        """Calculate the gradients of a field"""
+        f_dx = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
+        f_dy = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
+        f_dz = minmod_1D(jnp.roll(f, 1, axis=3), f, jnp.roll(f, -1, axis=3))
+        return f_dx, f_dy, f_dz
 
+    # def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
+    #     f_XR, f_XL = f + f_dx * dx / 2, shift_left(f - f_dx * dx / 2, axis=1)
+    #     f_YR, f_YL = f + f_dy * dy / 2, shift_left(f - f_dy * dy / 2, axis=2)
+    #     f_ZR, f_ZL = f + f_dz * dz / 2, shift_left(f - f_dz * dz / 2, axis=3)
+      
+    #     return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
+    
     def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
-        f_XR, f_XL = f + f_dx * dx / 2, shift_left(f - f_dx * dx / 2, axis=1)
-        f_YR, f_YL = f + f_dy * dy / 2, shift_left(f - f_dy * dy / 2, axis=2)
-        f_ZR, f_ZL = f + f_dz * dz / 2, shift_left(f - f_dz * dz / 2, axis=3)
+        f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=1)
+        f_YR, f_YL = f + f_dy * dy / 2, jnp.roll(f - f_dy * dy / 2, 1, axis=2)
+        f_ZR, f_ZL = f + f_dz * dz / 2, jnp.roll(f - f_dz * dz / 2, 1, axis=3)
       
         return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
-    
-    # def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
-    #     f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=1)
-    #     f_YR, f_YL = f + f_dy * dy / 2, jnp.roll(f - f_dy * dy / 2, 1, axis=2)
-    #     f_ZR, f_ZL = f + f_dz * dz / 2, jnp.roll(f - f_dz * dz / 2, 1, axis=3)
-        
-    #     return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
 
     c02 = gamma * P / rho
     ca2 = (Bx**2 + By**2 + Bz**2) / rho
@@ -57,7 +59,7 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
     val_max = jnp.maximum(jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)), cmfz + jnp.abs(vz))
     dt = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
     
-    Ux, Uy, Uz = get_gradient(U)
+    Ux, Uy, Uz = get_gradient(U_primitive)
     rho_dx, P_dx,  vx_dx, vy_dx, vz_dx, Bx_dx, By_dx, Bz_dx = Ux
     rho_dy, P_dy,  vx_dy, vy_dy, vz_dy, Bx_dy, By_dy, Bz_dy = Uy
     rho_dz, P_dz,  vx_dz, vy_dz, vz_dz, Bx_dz, By_dz, Bz_dz = Uz
@@ -152,7 +154,7 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
         r_star = 0.5 * (Rmag_L + Rmag_R) - 0.5 * (vz_R - vz_L) * aface
 
         # compute fluxes with upwind    
-        flux_Mass = jnp.where(
+        flux_rho = jnp.where(
             u_star > 0, 
             u_star * rho_L, 
             u_star * rho_R)
@@ -196,49 +198,55 @@ def update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, B
             u_star * Bz_R - w_star * Bx_L
         )
 
-        return flux_Mass, flux_Momx, flux_Momy, flux_Momz, flux_Energy, flux_Bx, flux_By, flux_Bz
-
-    def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
-        F += (dt / dx) * flux_F_X
-        F += -(dt / dx) * shift_right(flux_F_X, axis=0)
-      
-        F += (dt / dy) * flux_F_Y
-        F += -(dt / dy) * shift_right(flux_F_Y, axis=1)
-      
-        F += (dt / dz) * flux_F_Z
-        F += -(dt / dz) * shift_right(flux_F_Z, axis=2)
-        return F
+        return flux_rho, flux_Momx, flux_Momy, flux_Momz, flux_Energy, flux_Bx, flux_By, flux_Bz
 
     # def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
     #     F += (dt / dx) * flux_F_X
-    #     F += -(dt / dx) * jnp.roll(flux_F_X, -1, axis=0)
-        
+    #     F += -(dt / dx) * shift_right(flux_F_X, axis=0)
+      
     #     F += (dt / dy) * flux_F_Y
-    #     F += -(dt / dy) * jnp.roll(flux_F_Y, -1, axis=1)
-        
+    #     F += -(dt / dy) * shift_right(flux_F_Y, axis=1)
+      
     #     F += (dt / dz) * flux_F_Z
-    #     F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=2)
+    #     F += -(dt / dz) * shift_right(flux_F_Z, axis=2)
     #     return F
 
-    flux_Mass_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux(
+    flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux(
         rho_XL, rho_XR, vx_XL, vx_XR, vy_XL, vy_XR, vz_XL, vz_XR, P_XL, P_XR, gamma, Bx_XL, Bx_XR, By_XL, By_XR, Bz_XL, Bz_XR
     )
 
-    flux_Mass_Y, flux_Momy_Y, flux_Momx_Y, flux_Momz_Y, flux_Energy_Y, flux_By_Y, flux_Bx_Y, flux_Bz_Y = get_flux(
+    flux_rho_Y, flux_Momy_Y, flux_Momx_Y, flux_Momz_Y, flux_Energy_Y, flux_By_Y, flux_Bx_Y, flux_Bz_Y = get_flux(
         rho_YL, rho_YR, vy_YL, vy_YR, vx_YL, vx_YR, vz_YL, vz_YR, P_YL, P_YR, gamma, By_YL, By_YR, Bx_YL, Bx_YR,  Bz_YL, Bz_YR
     )
 
-    flux_Mass_Z, flux_Momz_Z, flux_Momy_Z, flux_Momx_Z, flux_Energy_Z, flux_Bz_Z, flux_By_Z, flux_Bx_Z = get_flux(
+    flux_rho_Z, flux_Momz_Z, flux_Momy_Z, flux_Momx_Z, flux_Energy_Z, flux_Bz_Z, flux_By_Z, flux_Bx_Z = get_flux(
         rho_ZL, rho_ZR, vz_ZL, vz_ZR, vy_ZL, vy_ZR, vx_ZL, vx_ZR, P_ZL, P_ZR, gamma, Bz_ZL, Bz_ZR, By_ZL, By_ZR, Bx_ZL, Bx_ZR
     )
+    
+    Flux_X = jnp.stack([flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X], axis=0)
+    Flux_Y = jnp.stack([flux_rho_Y, flux_Momx_Y, flux_Momy_Y, flux_Momz_Y, flux_Energy_Y, flux_Bx_Y, flux_By_Y, flux_Bz_Y], axis=0)
+    Flux_Z = jnp.stack([flux_rho_Z, flux_Momx_Z, flux_Momy_Z, flux_Momz_Z, flux_Energy_Z, flux_Bx_Z, flux_By_Z, flux_Bz_Z], axis=0)
+    
+    def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
+        F += (dt / dx) * flux_F_X
+        F += -(dt / dx) * jnp.roll(flux_F_X, -1, axis=1)
+      
+        F += (dt / dy) * flux_F_Y
+        F += -(dt / dy) * jnp.roll(flux_F_Y, -1, axis=2)
+      
+        F += (dt / dz) * flux_F_Z
+        F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=3)
+        return F
+    
+    U_conserved = apply_fluxes(U_conserved, Flux_X, Flux_Y, Flux_Z, dx, dy, dz, dt)
+    
+    rho = U_conserved[0]
+    Momx = U_conserved[1]
+    Momy = U_conserved[2]
+    Momz = U_conserved[3]
+    Energy = U_conserved[4]
+    Bx = U_conserved[5]
+    By = U_conserved[6]
+    Bz = U_conserved[7]
 
-    Mass = apply_fluxes(Mass, flux_Mass_X, flux_Mass_Y, flux_Mass_Z, dx, dy, dz, dt)
-    Momx = apply_fluxes(Momx, flux_Momx_X, flux_Momx_Y, flux_Momx_Z, dx, dy, dz, dt)
-    Momy = apply_fluxes(Momy, flux_Momy_X, flux_Momy_Y, flux_Momy_Z,  dx, dy, dz, dt)
-    Momz = apply_fluxes(Momz, flux_Momz_X, flux_Momz_Y, flux_Momz_Z,  dx, dy, dz, dt)
-    Energy = apply_fluxes(Energy, flux_Energy_X, flux_Energy_Y,flux_Energy_Z,  dx, dy, dz, dt)
-    Bx = apply_fluxes(Bx, flux_Bx_X, flux_Bx_Y, flux_Bx_Z, dx, dy, dz, dt)
-    By = apply_fluxes(By, flux_By_X, flux_By_Y, flux_By_Z, dx, dy, dz, dt)
-    Bz = apply_fluxes(Bz, flux_Bz_X, flux_Bz_Y, flux_Bz_Z, dx, dy, dz, dt)
-
-    return Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz
+    return rho, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz
