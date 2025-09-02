@@ -9,7 +9,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(rho, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
     
     U_primitive = jnp.stack([rho, P, vx, vy, vz, Bx, By, Bz], axis=0)
-    # U_conserved = jnp.stack([rho, Momx, Momy, Momz, Energy, Bx, By, Bz], axis=0)
+    U_conserved = jnp.stack([rho, Momx, Momy, Momz, Energy, Bx, By, Bz], axis=0)
 
     def minmod_1D(v_l, v_c, v_r):
         dlft = v_c - v_l
@@ -223,9 +223,9 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         rho_ZL, rho_ZR, vz_ZL, vz_ZR, vy_ZL, vy_ZR, vx_ZL, vx_ZR, P_ZL, P_ZR, gamma, Bz_ZL, Bz_ZR, By_ZL, By_ZR, Bx_ZL, Bx_ZR
     )
     
-    # Flux_X = jnp.stack([flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X], axis=0)
-    # Flux_Y = jnp.stack([flux_rho_Y, flux_Momx_Y, flux_Momy_Y, flux_Momz_Y, flux_Energy_Y, flux_Bx_Y, flux_By_Y, flux_Bz_Y], axis=0)
-    # Flux_Z = jnp.stack([flux_rho_Z, flux_Momx_Z, flux_Momy_Z, flux_Momz_Z, flux_Energy_Z, flux_Bx_Z, flux_By_Z, flux_Bz_Z], axis=0)
+    Flux_X = jnp.stack([flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X], axis=0)
+    Flux_Y = jnp.stack([flux_rho_Y, flux_Momx_Y, flux_Momy_Y, flux_Momz_Y, flux_Energy_Y, flux_Bx_Y, flux_By_Y, flux_Bz_Y], axis=0)
+    Flux_Z = jnp.stack([flux_rho_Z, flux_Momx_Z, flux_Momy_Z, flux_Momz_Z, flux_Energy_Z, flux_Bx_Z, flux_By_Z, flux_Bz_Z], axis=0)
     
     def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
         F += (dt / dx) * flux_F_X
@@ -238,8 +238,14 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=2)
         return F
     
+    # apply_fluxes_batched = jax.vmap(
+        # apply_fluxes,
+        # in_axes=(0, 0, 0, 0, None, None, None, None),  
+        # out_axes=0
+        # )
+
     # U_conserved = apply_fluxes(U_conserved, Flux_X, Flux_Y, Flux_Z, dx, dy, dz, dt)
-    
+        
     # rho = U_conserved[0]
     # Momx = U_conserved[1]
     # Momy = U_conserved[2]
