@@ -202,13 +202,13 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
 
     # def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
     #     F += (dt / dx) * flux_F_X
-    #     F += -(dt / dx) * shift_right(flux_F_X, axis=0)
+    #     F += -(dt / dx) * shift_right(flux_F_X, axis=1)
     
     #     F += (dt / dy) * flux_F_Y
-    #     F += -(dt / dy) * shift_right(flux_F_Y, axis=1)
+    #     F += -(dt / dy) * shift_right(flux_F_Y, axis=2)
     
     #     F += (dt / dz) * flux_F_Z
-    #     F += -(dt / dz) * shift_right(flux_F_Z, axis=2)
+    #     F += -(dt / dz) * shift_right(flux_F_Z, axis=3)
     #     return F
 
     flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux(
