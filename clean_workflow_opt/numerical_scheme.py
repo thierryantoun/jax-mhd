@@ -9,7 +9,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(rho, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
     
     U_primitive = jnp.stack([rho, P, vx, vy, vz, Bx, By, Bz], axis=0)
-    U_conserved = jnp.stack([rho, Momx, Momy, Momz, Energy, Bx, By, Bz], axis=0)
+    # U_conserved = jnp.stack([rho, Momx, Momy, Momz, Energy, Bx, By, Bz], axis=0)
 
     def minmod_1D(v_l, v_c, v_r):
         dlft = v_c - v_l
@@ -223,30 +223,30 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         rho_ZL, rho_ZR, vz_ZL, vz_ZR, vy_ZL, vy_ZR, vx_ZL, vx_ZR, P_ZL, P_ZR, gamma, Bz_ZL, Bz_ZR, By_ZL, By_ZR, Bx_ZL, Bx_ZR
     )
     
-    Flux_X = jnp.stack([flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X], axis=0)
-    Flux_Y = jnp.stack([flux_rho_Y, flux_Momx_Y, flux_Momy_Y, flux_Momz_Y, flux_Energy_Y, flux_Bx_Y, flux_By_Y, flux_Bz_Y], axis=0)
-    Flux_Z = jnp.stack([flux_rho_Z, flux_Momx_Z, flux_Momy_Z, flux_Momz_Z, flux_Energy_Z, flux_Bx_Z, flux_By_Z, flux_Bz_Z], axis=0)
+    # Flux_X = jnp.stack([flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X], axis=0)
+    # Flux_Y = jnp.stack([flux_rho_Y, flux_Momx_Y, flux_Momy_Y, flux_Momz_Y, flux_Energy_Y, flux_Bx_Y, flux_By_Y, flux_Bz_Y], axis=0)
+    # Flux_Z = jnp.stack([flux_rho_Z, flux_Momx_Z, flux_Momy_Z, flux_Momz_Z, flux_Energy_Z, flux_Bx_Z, flux_By_Z, flux_Bz_Z], axis=0)
     
     def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
         F += (dt / dx) * flux_F_X
-        F += -(dt / dx) * jnp.roll(flux_F_X, -1, axis=1)
+        F += -(dt / dx) * jnp.roll(flux_F_X, -1, axis=0)
     
         F += (dt / dy) * flux_F_Y
-        F += -(dt / dy) * jnp.roll(flux_F_Y, -1, axis=2)
+        F += -(dt / dy) * jnp.roll(flux_F_Y, -1, axis=1)
     
         F += (dt / dz) * flux_F_Z
-        F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=3)
+        F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=2)
         return F
     
-    U_conserved = apply_fluxes(U_conserved, Flux_X, Flux_Y, Flux_Z, dx, dy, dz, dt)
+    # U_conserved = apply_fluxes(U_conserved, Flux_X, Flux_Y, Flux_Z, dx, dy, dz, dt)
     
-    rho = U_conserved[0]
-    Momx = U_conserved[1]
-    Momy = U_conserved[2]
-    Momz = U_conserved[3]
-    Energy = U_conserved[4]
-    Bx = U_conserved[5]
-    By = U_conserved[6]
-    Bz = U_conserved[7]
+    rho = apply_fluxes(rho, flux_rho_X, flux_rho_Y, flux_rho_Z, dx, dy, dz, dt)
+    Momx = apply_fluxes(Momx, flux_Momx_X, flux_Momx_Y, flux_Momx_Z, dx, dy, dz, dt)
+    Momy = apply_fluxes(Momy, flux_Momy_X, flux_Momy_Y, flux_Momy_Z, dx, dy, dz, dt)
+    Momz = apply_fluxes(Momz, flux_Momz_X, flux_Momz_Y, flux_Momz_Z, dx, dy, dz, dt)
+    Energy = apply_fluxes(Energy, flux_Energy_X, flux_Energy_Y, flux_Energy_Z, dx, dy, dz, dt)
+    Bx = apply_fluxes(Bx, flux_Bx_X, flux_Bx_Y, flux_Bx_Z, dx, dy, dz, dt)
+    By = apply_fluxes(By, flux_By_X, flux_By_Y, flux_By_Z, dx, dy, dz, dt)
+    Bz = apply_fluxes(Bz, flux_Bz_X, flux_Bz_Y, flux_Bz_Z, dx, dy, dz, dt)                                                             
 
     return rho, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz
