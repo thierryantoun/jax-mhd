@@ -26,7 +26,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         f_dy = minmod_1D(shift_left(f, axis=2), f, shift_right(f,axis=2))
         f_dz = minmod_1D(shift_left(f, axis=3), f, shift_right(f,axis=3))
         return f_dx, f_dy, f_dz
-    
+
     # def get_gradient(f):
     #     """Calculate the gradients of a field"""
     #     f_dx = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
@@ -201,15 +201,15 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         return flux_rho, flux_Momx, flux_Momy, flux_Momz, flux_Energy, flux_Bx, flux_By, flux_Bz
 
     def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
-            F += (dt / dx) * flux_F_X
-            F += -(dt / dx) * jnp.roll(flux_F_X, -1, axis=1)
-        
-            F += (dt / dy) * flux_F_Y
-            F += -(dt / dy) * jnp.roll(flux_F_Y, -1, axis=2)
-        
-            F += (dt / dz) * flux_F_Z
-            F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=3)
-            return F
+        F += (dt / dx) * flux_F_X
+        F += -(dt / dx) * shift_right(flux_F_X, axis=0)
+    
+        F += (dt / dy) * flux_F_Y
+        F += -(dt / dy) * shift_right(flux_F_Y, axis=1)
+    
+        F += (dt / dz) * flux_F_Z
+        F += -(dt / dz) * shift_right(flux_F_Z, axis=2)
+        return F
 
     flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux(
         rho_XL, rho_XR, vx_XL, vx_XR, vy_XL, vy_XR, vz_XL, vz_XR, P_XL, P_XR, gamma, Bx_XL, Bx_XR, By_XL, By_XR, Bz_XL, Bz_XR
