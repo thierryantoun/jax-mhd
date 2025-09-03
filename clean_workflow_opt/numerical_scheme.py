@@ -10,8 +10,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(rho, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
     
     U_primitive = jnp.stack([rho, P, vx, vy, vz, Bx, By, Bz], axis=0)
-    U_conserved = jnp.stack([rho, Momx, Momy, Momz, Energy, Bx, By, Bz], axis=0)
-
+    
     def minmod_1D(v_l, v_c, v_r):
         dlft = v_c - v_l
         drgt = v_r - v_c
