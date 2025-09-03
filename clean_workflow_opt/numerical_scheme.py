@@ -204,13 +204,13 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     # chaque variable a ses flux propres, batch les opérations ici ne sert à rien
     def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
         F += sx * flux_F_X
-        F += - sx * jnp.roll(flux_F_X, -1, axis=1)
+        F += - sx * jnp.roll(flux_F_X, -1, axis=0)
 
         F += sy * flux_F_Y
-        F += - sy * jnp.roll(flux_F_Y, -1, axis=2)
+        F += - sy * jnp.roll(flux_F_Y, -1, axis=1)
 
         F += sz * flux_F_Z
-        F += - sz * jnp.roll(flux_F_Z, -1, axis=3)
+        F += - sz * jnp.roll(flux_F_Z, -1, axis=2)
         return F
     
     rho = apply_fluxes(rho, flux_rho_X, flux_rho_Y, flux_rho_Z, dx, dy, dz, dt)
