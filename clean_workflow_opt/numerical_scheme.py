@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as jnp
 from physics import get_primitive
-from jaxpr import examine_jaxpr
+# from jaxpr import examine_jaxpr
 
 @jax.jit
 def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
