@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 from physics import get_primitive
 from roll import shift_left, shift_right
+from jaxpr import examine_jaxpr
 
 @jax.jit
 def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
@@ -20,26 +21,12 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         dlim = jnp.where(dlft * drgt < 0, 0.0, slop)
         return dsgn * jnp.minimum(jnp.abs(dcen), dlim)
 
-    # def get_gradient(f):
-    #     """Calculate the gradients of a field"""
-    #     f_dx = minmod_1D(shift_left(f, axis=1), f, shift_right(f,axis=1))
-    #     f_dy = minmod_1D(shift_left(f, axis=2), f, shift_right(f,axis=2))
-    #     f_dz = minmod_1D(shift_left(f, axis=3), f, shift_right(f,axis=3))
-    #     return f_dx, f_dy, f_dz
-
     def get_gradient(f):
         """Calculate the gradients of a field"""
         f_dx = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
         f_dy = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
         f_dz = minmod_1D(jnp.roll(f, 1, axis=3), f, jnp.roll(f, -1, axis=3))
         return f_dx, f_dy, f_dz
-
-    # def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
-    #     f_XR, f_XL = f + f_dx * dx / 2, shift_left(f - f_dx * dx / 2, axis=1)
-    #     f_YR, f_YL = f + f_dy * dy / 2, shift_left(f - f_dy * dy / 2, axis=2)
-    #     f_ZR, f_ZL = f + f_dz * dz / 2, shift_left(f - f_dz * dz / 2, axis=3)
-    
-    #     return f_XL, f_XR, f_YL, f_YR, f_ZL, f_ZR
     
     def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
         f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=1)
@@ -200,17 +187,6 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
 
         return flux_rho, flux_Momx, flux_Momy, flux_Momz, flux_Energy, flux_Bx, flux_By, flux_Bz
 
-    # def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
-    #     F += (dt / dx) * flux_F_X
-    #     F += -(dt / dx) * shift_right(flux_F_X, axis=1)
-    
-    #     F += (dt / dy) * flux_F_Y
-    #     F += -(dt / dy) * shift_right(flux_F_Y, axis=2)
-    
-    #     F += (dt / dz) * flux_F_Z
-    #     F += -(dt / dz) * shift_right(flux_F_Z, axis=3)
-    #     return F
-
     flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X = get_flux(
         rho_XL, rho_XR, vx_XL, vx_XR, vy_XL, vy_XR, vz_XL, vz_XR, P_XL, P_XR, gamma, Bx_XL, Bx_XR, By_XL, By_XR, Bz_XL, Bz_XR
     )
@@ -223,37 +199,21 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         rho_ZL, rho_ZR, vz_ZL, vz_ZR, vy_ZL, vy_ZR, vx_ZL, vx_ZR, P_ZL, P_ZR, gamma, Bz_ZL, Bz_ZR, By_ZL, By_ZR, Bx_ZL, Bx_ZR
     )
     
-    Flux_X = jnp.stack([flux_rho_X, flux_Momx_X, flux_Momy_X, flux_Momz_X, flux_Energy_X, flux_Bx_X, flux_By_X, flux_Bz_X], axis=0)
-    Flux_Y = jnp.stack([flux_rho_Y, flux_Momx_Y, flux_Momy_Y, flux_Momz_Y, flux_Energy_Y, flux_Bx_Y, flux_By_Y, flux_Bz_Y], axis=0)
-    Flux_Z = jnp.stack([flux_rho_Z, flux_Momx_Z, flux_Momy_Z, flux_Momz_Z, flux_Energy_Z, flux_Bx_Z, flux_By_Z, flux_Bz_Z], axis=0)
+    sx = dt / dx
+    sy = dt / dy
+    sz = dt / dz
     
+    # chaque variable a ses flux propres, batch les opérations ici ne sert à rien
     def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
-        F += (dt / dx) * flux_F_X
-        F += -(dt / dx) * jnp.roll(flux_F_X, -1, axis=0)
-    
-        F += (dt / dy) * flux_F_Y
-        F += -(dt / dy) * jnp.roll(flux_F_Y, -1, axis=1)
-    
-        F += (dt / dz) * flux_F_Z
-        F += -(dt / dz) * jnp.roll(flux_F_Z, -1, axis=2)
-        return F
-    
-    # apply_fluxes_batched = jax.vmap(
-        # apply_fluxes,
-        # in_axes=(0, 0, 0, 0, None, None, None, None),  
-        # out_axes=0
-        # )
+        F += sx * flux_F_X
+        F += - sx * jnp.roll(flux_F_X, -1, axis=1)
 
-    # U_conserved = apply_fluxes(U_conserved, Flux_X, Flux_Y, Flux_Z, dx, dy, dz, dt)
-        
-    # rho = U_conserved[0]
-    # Momx = U_conserved[1]
-    # Momy = U_conserved[2]
-    # Momz = U_conserved[3]
-    # Energy = U_conserved[4]
-    # Bx = U_conserved[5]
-    # By = U_conserved[6]
-    # Bz = U_conserved[7]
+        F += sy * flux_F_Y
+        F += - sy * jnp.roll(flux_F_Y, -1, axis=2)
+
+        F += sz * flux_F_Z
+        F += - sz * jnp.roll(flux_F_Z, -1, axis=3)
+        return F
     
     rho = apply_fluxes(rho, flux_rho_X, flux_rho_Y, flux_rho_Z, dx, dy, dz, dt)
     Momx = apply_fluxes(Momx, flux_Momx_X, flux_Momx_Y, flux_Momx_Z, dx, dy, dz, dt)
