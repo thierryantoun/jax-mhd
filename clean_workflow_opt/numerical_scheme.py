@@ -1,7 +1,6 @@
 import jax
 import jax.numpy as jnp
 from physics import get_primitive
-from roll import shift_left, shift_right
 from jaxpr import examine_jaxpr
 
 @jax.jit
