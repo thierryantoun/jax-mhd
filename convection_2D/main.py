@@ -42,9 +42,7 @@ def main(args, config):
     courant_fac = float(config["simulation"]["courant_fac"])
     t_stop      = float(config["simulation"]["t_stop"])
     
-    tau  = float(config["simulation"].get("tau", float("inf")))  # désactive le chauffage si non fourni
-    grav = float(config["simulation"].get("grav", "-1.0"))
-    cv   = float(config["simulation"].get("cv", "1.5"))
+    tau  = float(config["simulation"].get("tau", float("inf"))) 
 
     if use_double:
         print("Using double precision")

@@ -1,6 +1,8 @@
 import jax
 import jax.numpy as jnp
 from physics import get_primitive
+from nonperiodic_boundary_conditions import apply_nonperiodic_boundary_conditions
+from thermal_source import apply_thermal_source
 
 # @jax.jit
 def update(Mass, Momx, Momy, Energy, dx, dy, gamma, courant_fac, phi, tau, Teq, grav=-1.0, cv=1.5):
@@ -99,59 +101,17 @@ def update(Mass, Momx, Momy, Energy, dx, dy, gamma, courant_fac, phi, tau, Teq, 
     Momy   = apply_fluxes(Momy,  flux_Momy_X,   flux_Momy_Y,   dx, dy, dt)
     Energy = apply_fluxes(Energy,flux_Energy_X, flux_Energy_Y, dx, dy, dt)
     
-    # gravity source term (momentum)
+    # gravity source term 
     Momy = Momy.at[:, 1:-1].add( dt * 0.25 * (2 * Mass[:,1:-1] + Mass[:, 0:-2] + Mass[:, 2:]) * grav)
     
     rho, vx, vy, P = get_primitive(Mass, Momx, Momy, Energy, phi, gamma)
     
-    # thermal source term (energy)
-    ec = 0.5 * rho[:, 1:-1] * (vx[:, 1:-1]**2 + vy[:, 1:-1]**2)
-    egc = rho[:, 1:-1] * phi[:, 1:-1]
-    Tc = (Energy[:, 1:-1] - ec - egc) / (rho[:, 1:-1]*cv)
-    Tnew = (Tc + Teq[:, 1:-1] * dt / tau) / (1 + dt / tau)
-    
-    Energy = Energy.at[:, 1:-1].set(rho[:, 1:-1] * cv * Tnew + ec + egc) 
-    
-    # boundary conditions (convection)
-    T2 = (Energy[:, 2] 
-        - 0.5 * Mass[:, 2] * (vx[:, 2]**2 + 
-        vy[:, 2]**2) - Mass[:, 2] * phi[:, 2]) / (Mass[:, 2] * cv)
-    
-    T1 = (Energy[:, 1] 
-        - 0.5 * Mass[:, 1] * (vx[:, 1]**2 + 
-        vy[:, 1]**2) - Mass[:, 1] * phi[:, 1]) / (Mass[:, 1] * cv)
-    
-    TO = 2*T1 - T2
-    
-    Mass = Mass.at[:,0].set(Mass[:,1]*((gamma-1) * cv * T1 - 0.5 * grav * (dy)) 
-            / ((gamma-1) * cv * TO + 0.5 * grav * (dy)))
-    
-    Momx = Momx.at[:,0].set(Mass[:,0] * vx[:,1])
-    Momy = Momy.at[:,0].set(-Mass[:,0] * vy[:,1])
-    
-    Energy = Energy.at[:,0].set(Mass[:,0] * cv * TO + Mass[:,0] * phi[:,0]
-                + 0.5 * Mass[:,0] * (vx[:,1]**2 + vy[:,1]**2))
-        
-    T2 = (Energy[:, -3]
-      - 0.5 * rho[:, -3] * (vx[:, -3]**2 + vy[:, -3]**2)
-      - rho[:, -3] * phi[:, -3]) / (rho[:, -3] * cv)
+    # hermal source term 
+    Energy = apply_thermal_source(Energy, rho, vx, vy, phi, cv, Teq, dt, tau)
 
-    T1 = (Energy[:, -2]
-      - 0.5 * rho[:, -2] * (vx[:, -2]**2 + vy[:, -2]**2)
-      - rho[:, -2] * phi[:, -2]) / (rho[:, -2] * cv)
-
-    T0 = 2.0 * T1 - T2 
-
-    Mass   = Mass.at[:, -1].set(Mass[:, -2] * (
-        ((gamma - 1.0) * cv * T1 + 0.5 * grav * dy) /
-        ((gamma - 1.0) * cv * T0 - 0.5 * grav * dy)
-    ))
-    
-    Momx   = Momx.at[:, -1].set(Mass[:, -1] * vx[:, -2])           
-    Momy   = Momy.at[:, -1].set(-Mass[:, -1] * vy[:, -2])    
-    
-    Energy = Energy.at[:, -1].set(Mass[:, -1] * cv * T0 + Mass[:, -1] * phi[:, -1] 
-            + 0.5 * Mass[:, -1] * (vx[:, -2]**2 + vy[:, -2]**2)
+    # non-periodic boundary conditions
+    Mass, Momx, Momy, Energy = apply_nonperiodic_boundary_conditions(
+        Mass, Momx, Momy, Energy, rho, vx, vy, phi, gamma, cv, dy
     )
-            
+
     return Mass, Momx, Momy, Energy, dt, rho

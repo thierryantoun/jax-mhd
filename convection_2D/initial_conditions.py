@@ -1,26 +1,7 @@
 from modules import *
 
 def inital_condition(IC, X ,Y, gamma, boxsize):
-    
-    if (IC=='orszag-tang3D'):
-        rho = jnp.full_like(X, 25.0 / (36.0 * jnp.pi))
-        vx = - jnp.sin(2 * jnp.pi * Y)  
-        vy = jnp.sin(2 * jnp.pi * X)
-        P = jnp.full_like(X, 5.0 / (12.0 * jnp.pi))
-        Teq, phi, Energy = jnp.zeros_like(X), jnp.zeros_like(X), jnp.zeros_like(X)
-        
-    if (IC=='blast'):
-        center_x, center_y= 0.5 * boxsize, 0.5 * boxsize
-        radius = 0.1 
-        distance2 = (X - center_x)**2 + (Y - center_y)**2
-        mask = distance2 < radius**2  
-        rho = jnp.where(mask, 1.0, 1.2)
-        vx = jnp.zeros_like(X)
-        vy = jnp.zeros_like(Y)
-        P = jnp.where(mask, 10.0 / (gamma - 1), 0.1 / (gamma - 1))
-        Teq, phi, Energy = jnp.zeros_like(X), jnp.zeros_like(X), jnp.zeros_like(X)
-        
-    elif (IC=='convection'):
+    if (IC=='convection'):
         
         Nx ,Ny = X.shape[0], Y.shape[1]
         vx   = jnp.zeros((Nx, Ny+2))
