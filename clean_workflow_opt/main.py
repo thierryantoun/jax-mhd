@@ -4,6 +4,8 @@ import os
 import time
 import jax
 from functools import partial
+from pathlib import Path, PurePath
+import json
 
 from modules import *
 from numerical_scheme import *
@@ -101,20 +103,31 @@ def main(args, config):
         count += 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
+    # --- 1) Warm-up: compile + snapshot mémoire compilation ---
+    _state_after_compile, _ = jax.lax.scan(
+        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+        initial_state, None, length=1
+    )
+    jax.block_until_ready(_state_after_compile)
+    jax.profiler.save_device_memory_profile("mem_after_compile.prof")
+    print("[mem] wrote mem_after_compile.prof")
+
+    # --- 2) Run complet: mesure + snapshot mémoire fin de run ---
     global_start = time.time()
     final_state, _ = jax.lax.scan(
         lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-        initial_state,
-        None,
-        length=max_steps
+        initial_state, None, length=max_steps
     )
     jax.block_until_ready(final_state)
+    jax.profiler.save_device_memory_profile("mem_after_run.prof")
+    print("[mem] wrote mem_after_run.prof")
     global_end = time.time()
-        
+
+    # KPIs temporels
     t_final = final_state[8]
-    n_iter = final_state[9]
+    n_iter  = int(final_state[9])
     total_time = global_end - global_start
-    mcups = (Nx * Ny * Nz * int(n_iter)) / (1e6 * total_time)
+    mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
     
     print("\nSimulation complete")
     print(f"Final time reached: {float(t_final):.4f}")
