@@ -164,3 +164,4 @@ def main(args, config):
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
+    print(jax.local_devices()[0].memory_stats())
