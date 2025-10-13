@@ -164,4 +164,5 @@ def main(args, config):
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
-    print(jax.local_devices()[0].memory_stats())
+    ms = jax.devices("gpu")[0].memory_stats()
+    print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
