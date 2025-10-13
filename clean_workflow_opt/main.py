@@ -92,6 +92,7 @@ def main(args, config):
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
 
     max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
+    #max_steps = 1
 
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
@@ -103,24 +104,14 @@ def main(args, config):
         count += 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
-    # --- 1) Warm-up: compile + snapshot mémoire compilation ---
-    _state_after_compile, _ = jax.lax.scan(
-        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-        initial_state, None, length=1
-    )
-    jax.block_until_ready(_state_after_compile)
-    jax.profiler.save_device_memory_profile("mem_after_compile.prof")
-    print("[mem] wrote mem_after_compile.prof")
-
-    # --- 2) Run complet: mesure + snapshot mémoire fin de run ---
     global_start = time.time()
     final_state, _ = jax.lax.scan(
         lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
         initial_state, None, length=max_steps
     )
     jax.block_until_ready(final_state)
-    jax.profiler.save_device_memory_profile("mem_after_run.prof")
-    print("[mem] wrote mem_after_run.prof")
+    # jax.profiler.save_device_memory_profile("mem_after_run.prof")
+    # print("[mem] wrote mem_after_run.prof")
     global_end = time.time()
 
     # KPIs temporels
