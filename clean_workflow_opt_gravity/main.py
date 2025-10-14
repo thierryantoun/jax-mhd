@@ -103,6 +103,24 @@ def main(args, config):
         t += dt
         count += 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+    
+    # il faut que max_steps soit static pour le lax.scan
+    def run_scan(state, dx, dy, dz, gamma, courant_fac, max_steps: int):
+        return jax.lax.scan(lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+                            state, None, length=max_steps)
+
+    # on marque les hyperparams comme statiques pour le traçage
+    run_scan_jit = jax.jit(run_scan,
+        static_argnames=("dx","dy","dz","gamma","courant_fac","max_steps"))
+
+    # ---------- compilation de la boucle scan ----------
+    t0 = time.perf_counter()
+    compiled = run_scan_jit.lower(
+        initial_state, dx=dx, dy=dy, dz=dz,
+        gamma=gamma, courant_fac=courant_fac, max_steps=int(max_steps)
+    ).compile()
+    t1 = time.perf_counter()
+    print(f"[JAX] Compile time (scan) = {t1 - t0:.3f} s")
 
     global_start = time.time()
     final_state, _ = jax.lax.scan(
