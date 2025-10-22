@@ -85,15 +85,6 @@ def main(args, config):
     Y = jax.lax.with_sharding_constraint(Y, sharding)
     Z = jax.lax.with_sharding_constraint(Z, sharding)
 
-    # Allow to visualize how the shredding is done on X
-    if jax.process_index() == 0:
-        print("X (slice at Z=0):")
-        jax.debug.visualize_array_sharding(X[:, :, 0])
-        print("X (slice at Y=0):")
-        jax.debug.visualize_array_sharding(X[:, 0, :])
-        print("X (slice at X=0):")
-        jax.debug.visualize_array_sharding(X[0, :, :])
-
     # Generate Orszag-Tang initial conditions
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
 
@@ -112,52 +103,19 @@ def main(args, config):
     n_iter = 0
     
     while t < t_stop:
-    
-        step_start = time.time()
-        # Time step
         Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
             Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
         )
         
-        save_plot = (save_freq > 0.0 and t >= output_counter * save_freq)
-
-        if save_plot:
-            # Convert to numpy arrays, transfer to CPU automatically
-            rho_np = np.array(rho)
-            Bx_np = np.array(Bx)
-
-            # Create pyvista grid
-            import pyvista as pv
-            grid = pv.ImageData()
-
-            grid.dimensions = np.array(rho_np.shape) + 1 
-            grid.origin = (0, 0, 0)
-            grid.spacing = (dx, dx, dx)
-
-            # Add fields (flattened in Fortran order)
-            grid["rho"] = np.array(rho).flatten(order="F")
-            grid["Bx"] = np.array(Bx).flatten(order="F")
-            grid["By"] = np.array(By).flatten(order="F")
-            grid["Bz"] = np.array(Bz).flatten(order="F")
-            grid["vx"] = np.array(vx).flatten(order="F")
-            grid["vy"] = np.array(vy).flatten(order="F")
-            grid["vz"] = np.array(vz).flatten(order="F")
-            grid["P"] = np.array(P).flatten(order="F")
-
-            # Write to .vti
-            filename = os.path.join(save_animation_path, f"output_{output_counter:04d}.vti")
-            grid.save(filename)
-            
-            output_counter += 1
-
+        rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
         # update time
         t += dt
-
         # update iteration counter
         n_iter += 1
-        step_end = time.time()
-        print(f"Iteration {n_iter:4d} — t = {t:.4f} — dt = {dt:.2e} — step time = {step_end - step_start:.2f}s")
     
+    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
+    
+    # Finalize
     global_end = time.time()
     total_time = global_end - global_start
     mcups = (N**3 * n_iter) / (1e6 * total_time)
