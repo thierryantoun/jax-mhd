@@ -85,6 +85,15 @@ def main(args, config):
     Y = jax.lax.with_sharding_constraint(Y, sharding)
     Z = jax.lax.with_sharding_constraint(Z, sharding)
 
+    # Allow to visualize how the shredding is done on X
+    if jax.process_index() == 0:
+        print("X (slice at Z=0):")
+        jax.debug.visualize_array_sharding(X[:, :, 0])
+        print("X (slice at Y=0):")
+        jax.debug.visualize_array_sharding(X[:, 0, :])
+        print("X (slice at X=0):")
+        jax.debug.visualize_array_sharding(X[0, :, :])
+
     # Generate Orszag-Tang initial conditions
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
 
@@ -102,18 +111,25 @@ def main(args, config):
     output_counter = 0
     n_iter = 0
     
-    while t < t_stop:
-        Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
-        )
+    with jax.profiler.trace("/tmp/jax-trace", create_perfetto_link=True):
+        while t < t_stop:
         
-        rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
-        # update time
-        t += dt
-        # update iteration counter
-        n_iter += 1
-    
-    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
+            step_start = time.time()
+            # Time step
+            Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
+                Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
+            )
+            
+            rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
+
+            # update time
+            t += dt
+
+            # update iteration counter
+            n_iter += 1
+            step_end = time.time()
+            print(f"Iteration {n_iter:4d} — t = {t:.4f} — dt = {dt:.2e} — step time = {step_end - step_start:.2f}s")
+            jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
     
     # Finalize
     global_end = time.time()
