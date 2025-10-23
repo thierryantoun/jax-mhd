@@ -11,9 +11,13 @@ import os
 import time
 import numpy as np
 import jax
+import jax.numpy as jnp
 
+from functools import partial
 from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
+from jax.profiler import trace, StepTraceAnnotation  # <-- profilage
+from jax import profiler as jprof
 
 def main(args, config):
     """Finite Volume simulation"""
@@ -85,7 +89,7 @@ def main(args, config):
     Y = jax.lax.with_sharding_constraint(Y, sharding)
     Z = jax.lax.with_sharding_constraint(Z, sharding)
 
-    # Allow to visualize how the shredding is done on X
+    # Allow to visualize how the sharding is done on X
     if jax.process_index() == 0:
         print("X (slice at Z=0):")
         jax.debug.visualize_array_sharding(X[:, :, 0])
@@ -104,41 +108,54 @@ def main(args, config):
     if not os.path.exists(save_animation_path):
         os.makedirs(save_animation_path, exist_ok=True)
 
-    # Simulation Main Loop
-    global_start = time.time() 
-    tic = time.time()
-    t = 0
-    output_counter = 0
+    # ---------------------------
+    #   CORPS D’ITÉRATION JIT
+    # ---------------------------
+    def step_once(state, dx, gamma, courant_fac):
+        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = state
+        Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
+            Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
+        )
+        rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(
+            Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz
+        )
+        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz), dt
+
+    # État initial pour la boucle (⚠️ définir AVANT toute compilation)
+    state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz)
+    t = 0.0
     n_iter = 0
-    
-    with jax.profiler.trace("/tmp/jax-trace", create_perfetto_link=True):
-        while t < t_stop:
-        
-            step_start = time.time()
-            # Time step
-            Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
-                Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
-            )
-            
-            rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
+    # -------------
+    #   EXÉCUTION + TRACE
+    # -------------
+    global_start = time.time()
 
-            # update time
-            t += dt
+    # Démarre l’enregistrement vers un fichier (pas de serveur web)
+    jprof.start_trace("/tmp/jax-trace.json.gz")
 
-            # update iteration counter
-            n_iter += 1
-            step_end = time.time()
-            print(f"Iteration {n_iter:4d} — t = {t:.4f} — dt = {dt:.2e} — step time = {step_end - step_start:.2f}s")
-            jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
-    
-    # Finalize
+    n_iter = 0
+    t_phys = 0.0
+    for _ in range(5):                       # 5 itérations de test
+        state, dt = step_once(state, dx, gamma, courant_fac)
+        dt_val = float(jax.device_get(dt))   # sync ici
+        t_phys += dt_val
+        n_iter += 1
+
+    # Barrière : s'assurer que tous les kernels sont terminés
+    jax.block_until_ready(state)
+
+    # Stoppe proprement le profiler
+    jprof.stop_trace()
+
     global_end = time.time()
+
+    # KPIs
     total_time = global_end - global_start
     mcups = (N**3 * n_iter) / (1e6 * total_time)
-
     print(f"\nSimulation complete after {n_iter} iterations")
-    print(f"Total runtime: {total_time:.2f} seconds")
-    print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
+    print(f"Total runtime (exec only): {total_time:.2f} s")
+    print(f"Performance: {mcups:.2f} MCUPS")
+    print("Trace saved to /tmp/jax-trace.json.gz (drag & drop dans ui.perfetto.dev)")
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
