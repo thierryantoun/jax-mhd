@@ -111,6 +111,8 @@ def main(args, config):
     # ---------------------------
     #   CORPS D’ITÉRATION JIT
     # ---------------------------
+    from functools import partial
+    @partial(jax.jit, static_argnums=(1, 2, 3))  # dx, gamma, courant_fac statiques
     def step_once(state, dx, gamma, courant_fac):
         Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = state
         Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
@@ -121,32 +123,29 @@ def main(args, config):
         )
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz), dt
 
-    # État initial pour la boucle (⚠️ définir AVANT toute compilation)
+    # État initial pour la boucle
     state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz)
-    t = 0.0
-    n_iter = 0
-    # -------------
-    #   EXÉCUTION + TRACE
-    # -------------
-    global_start = time.time()
 
-    # Démarre l’enregistrement vers un fichier (pas de serveur web)
+    # --------- TEMPS DE COMPILATION ---------
+    t_compile0 = time.perf_counter()
+    _compiled = step_once.lower(state, dx, gamma, courant_fac).compile()
+    t_compile1 = time.perf_counter()
+    print(f"[JIT compile] step_once: {t_compile1 - t_compile0:.3f} s")
+
+    # ------------- EXÉCUTION + TRACE -------------
+    global_start = time.time()
     jprof.start_trace("/tmp/jax-trace.json.gz")
 
     n_iter = 0
     t_phys = 0.0
-    for _ in range(5):                       # 5 itérations de test
-        state, dt = step_once(state, dx, gamma, courant_fac)
-        dt_val = float(jax.device_get(dt))   # sync ici
+    for _ in range(5):
+        state, dt = _compiled(state)              # <-- on appelle l'exécutable compilé
+        dt_val = float(jax.device_get(dt))        # sync ici (mesure propre)
         t_phys += dt_val
         n_iter += 1
 
-    # Barrière : s'assurer que tous les kernels sont terminés
     jax.block_until_ready(state)
-
-    # Stoppe proprement le profiler
     jprof.stop_trace()
-
     global_end = time.time()
 
     # KPIs
