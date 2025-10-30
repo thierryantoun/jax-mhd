@@ -1,32 +1,27 @@
-#!/usr/bin/env python
-# A simple example of solving the Euler equations with JAX
-# Philip Mocz (2024)
+#!/usr/bin/env python3
+
+import os
+import time
+import jax
+from functools import partial
+from pathlib import Path, PurePath
+import json
 
 from modules import *
 from numerical_scheme import *
-from initial_conditions import *  
+from initial_conditions import *
 from repartition_gpu import *
 from load_config import *
-import os
-import time
-import numpy as np
-import jax
-import jax.numpy as jnp
+from physics import *
 
-from functools import partial
 from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
-from jax.profiler import trace, StepTraceAnnotation  # <-- profilage
-from jax import profiler as jprof
 
 def main(args, config):
-    """Finite Volume simulation"""
-    
     USE_CPU_ONLY = args.cpu
 
     flags = os.environ.get("XLA_FLAGS", "")
     if USE_CPU_ONLY:
-        flags += " --xla_force_host_platform_device_count=8"
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
     else:
         flags += (
@@ -35,127 +30,150 @@ def main(args, config):
             "--xla_gpu_enable_highest_priority_async_stream=true "
         )
     os.environ["XLA_FLAGS"] = flags
-    
+
     IC = config["simulation"]["IC"]
-    N = int(config["simulation"]["resolution"])
+    Nx = int(config["simulation"]["resolution_x"])
+    Ny = int(config["simulation"]["resolution_y"])
+    Nz = int(config["simulation"]["resolution_z"])
     use_double = config.getboolean("simulation", "double")
     boxsize = float(config["simulation"]["boxsize"])
     gamma = float(config["simulation"]["gamma"])
     courant_fac = float(config["simulation"]["courant_fac"])
     t_stop = float(config["simulation"]["t_stop"])
-    
+
     if use_double:
         print("Using double precision")
         jax.config.update("jax_enable_x64", True)
     else:
         print("Using single precision")
 
-    if args.benchmark:
-        print("Benchmark mode enabled: disabling VTK output.")
-        save_freq = 0.0
-    else:
-        save_freq = float(config["simulation"]["save_freq"])
-    
+    dx = boxsize / Nx
+    dy = boxsize / Ny
+    dz = boxsize / Nz
+
+    # Domain
+    xlin = jnp.linspace(0.5 * dx, boxsize - 0.5 * dx, Nx)
+    ylin = jnp.linspace(0.5 * dy, boxsize - 0.5 * dy, Ny)
+    zlin = jnp.linspace(0.5 * dz, boxsize - 0.5 * dz, Nz)
+    X, Y, Z = jnp.meshgrid(xlin, ylin, zlin, indexing="ij")
+
     n_devices = jax.device_count()
     x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
     mesh = Mesh(mesh_utils.create_device_mesh((x_opt, y_opt, z_opt)), ("x", "y", "z"))
     sharding = NamedSharding(mesh, PartitionSpec("x", "y", "z"))
 
-    if jax.process_index() == 0:
-        for env_var in [
-            "SLURM_JOB_ID",
-            "SLURM_NTASKS",
-            "SLURM_NODELIST",
-            "SLURM_STEP_NODELIST",
-            "SLURM_STEP_GPUS",
-            "SLURM_GPUS",
-        ]:
-            print(f'{env_var}: {os.getenv(env_var,"")}')
-        print("Total number of processes: ", jax.process_count())
-        print("Total number of devices: ", jax.device_count())
-        print("List of devices: ", jax.devices())
-        print("Number of devices on this process: ", jax.local_device_count())
-
-    save_animation_path = (
-        "output_euler_" + str(N) + ("double" if use_double else "single")
-    )
-
-    # Mesh
-    dx = boxsize / N
-    xlin = jnp.linspace(0.5 * dx, boxsize - 0.5 * dx, N)
-    X, Y, Z = jnp.meshgrid(xlin, xlin, xlin, indexing="ij")
-
     X = jax.lax.with_sharding_constraint(X, sharding)
     Y = jax.lax.with_sharding_constraint(Y, sharding)
     Z = jax.lax.with_sharding_constraint(Z, sharding)
 
-    # Allow to visualize how the sharding is done on X
-    if jax.process_index() == 0:
-        print("X (slice at Z=0):")
-        jax.debug.visualize_array_sharding(X[:, :, 0])
-        print("X (slice at Y=0):")
-        jax.debug.visualize_array_sharding(X[:, 0, :])
-        print("X (slice at X=0):")
-        jax.debug.visualize_array_sharding(X[0, :, :])
-
-    # Generate Orszag-Tang initial conditions
+    # Initial conditions
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
-
-    # Get conserved variables
     Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = get_conserved(rho, vx, vy, vz, P, gamma, Bx, By, Bz)
 
-    # Make animation directory if it doesn't exist
-    if not os.path.exists(save_animation_path):
-        os.makedirs(save_animation_path, exist_ok=True)
+    # Initial state
+    initial_state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, jnp.array(0.0), jnp.array(0))
 
-    # ---------------------------
-    #   CORPS D’ITÉRATION JIT
-    # ---------------------------
-    from functools import partial
-    @partial(jax.jit, static_argnums=(1, 2, 3))  # dx, gamma, courant_fac statiques
-    def step_once(state, dx, gamma, courant_fac):
-        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = state
-        Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, gamma, courant_fac, Bx, By, Bz
-        )
-        rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(
-            Mass, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz
-        )
-        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz), dt
+    # Estimate max_steps conservatively
+    c02 = gamma * P / rho
+    ca2 = (Bx**2 + By**2 + Bz**2) / rho
+    cap2x = Bx**2 / rho
+    cap2y = By**2 / rho
+    cap2z = Bz**2 / rho
 
-    # État initial pour la boucle
-    state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz)
+    cmfx = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2x))
+    cmfy = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2y))
+    cmfz = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2z))
 
-    # --------- TEMPS DE COMPILATION ---------
-    t_compile0 = time.perf_counter()
-    _compiled = step_once.lower(state, dx, gamma, courant_fac).compile()
-    t_compile1 = time.perf_counter()
-    print(f"[JIT compile] step_once: {t_compile1 - t_compile0:.3f} s")
+    val_max = jnp.maximum(
+        jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)),
+        cmfz + jnp.abs(vz)
+    )
 
-    # ------------- EXÉCUTION + TRACE -------------
+    dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
+
+    max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
+
+    # @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
+    # def one_step(state, _, dx, dy, dz, gamma, courant_fac):
+    #     Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
+    #     Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+    #         Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+    #     )
+    #     t += dt
+    #     count += 1
+    #     return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+    
+    
+    # t0 = time.perf_counter()
+    # compiled = one_step.lower(
+    #     initial_state, None, dx=dx, dy=dy, dz=dz,
+    #     gamma=gamma, courant_fac=courant_fac).compile()
+    # t1 = time.perf_counter()
+    # print(f"[JAX] Compile time (step) = {t1 - t0:.3f} s")
+
     global_start = time.time()
-    jprof.start_trace("/tmp/jax-trace.json.gz")
 
-    n_iter = 0
-    t_phys = 0.0
-    for _ in range(5):
-        state, dt = _compiled(state)              # <-- on appelle l'exécutable compilé
-        dt_val = float(jax.device_get(dt))        # sync ici (mesure propre)
-        t_phys += dt_val
-        n_iter += 1
+    count = 0
+    t = 0.0
+    for _ in range(int(max_steps)):
+        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+        )
+        t += dt
+        count += 1
+    jax.block_until_ready(Mass)
 
-    jax.block_until_ready(state)
-    jprof.stop_trace()
     global_end = time.time()
 
-    # KPIs
+    # KPIs temporels
+    t_final = t
+    n_iter  = count
     total_time = global_end - global_start
-    mcups = (N**3 * n_iter) / (1e6 * total_time)
-    print(f"\nSimulation complete after {n_iter} iterations")
-    print(f"Total runtime (exec only): {total_time:.2f} s")
-    print(f"Performance: {mcups:.2f} MCUPS")
-    print("Trace saved to /tmp/jax-trace.json.gz (drag & drop dans ui.perfetto.dev)")
+    mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
+    
+    print("\nSimulation complete")
+    print(f"Final time reached: {float(t_final):.4f}")
+    print("nb_iterations:", n_iter)
+    print(f"Total runtime: {total_time:.2f} seconds")
+    print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
+    
+    if args.benchmark == False:
+    
+        import pyvista as pv
+        import numpy as np
+
+        # Convertir les arrays JAX en NumPy
+        Bx_np = np.array(Bx)
+        By_np = np.array(By)
+        Bz_np = np.array(Bz)
+        rho_np = np.array(rho)  # Mass / volume = rho (si unit vol)
+
+        # Calculer la densité si nécessaire
+        rho_np = rho_np  # ou Mass / dx**3 si tu veux une vraie densité
+
+        # Créer la grille PyVista
+        grid = pv.ImageData()
+
+        grid.dimensions = np.array(rho_np.shape) + 1 
+        grid.origin = (0, 0, 0)
+        grid.spacing = (dx, dx, dx)
+
+        # Taille et dimensions
+        grid.dimensions = np.array(Bx_np.shape) + 1  # +1 car c’est des cellules
+        grid.spacing = (dx, dy, dz)
+        grid.origin = (0, 0, 0)
+
+        # Ajouter les champs
+        grid["Bx"] = Bx_np.ravel(order="F")
+        grid["By"] = By_np.ravel(order="F")
+        grid["Bz"] = Bz_np.ravel(order="F")
+        grid["rho"] = rho_np.ravel(order="F")
+
+        # Export en fichier .vti
+        grid.save("output_final.vti")
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
+    # ms = jax.devices("gpu")[0].memory_stats()
+    # print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
