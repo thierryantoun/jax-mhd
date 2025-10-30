@@ -104,6 +104,14 @@ def main(args, config):
         count += 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
     
+    
+    t0 = time.perf_counter()
+    compiled = scan_step.lower(
+        initial_state, None, dx=dx, dy=dy, dz=dz,
+        gamma=gamma, courant_fac=courant_fac).compile()
+    t1 = time.perf_counter()
+    print(f"[JAX] Compile time (step) = {t1 - t0:.3f} s")
+    
     # il faut que max_steps soit static pour le lax.scan
     def run_scan(state, dx, dy, dz, gamma, courant_fac, max_steps: int):
         return jax.lax.scan(lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
