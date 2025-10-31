@@ -86,7 +86,7 @@ def main(args, config):
         t += dt
         n_iter += 1
 
-
+    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
     # KPIs temporels
     global_end = time.time()
     total_time = global_end - global_start
