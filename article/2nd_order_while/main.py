@@ -70,30 +70,6 @@ def main(args, config):
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
     Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = get_conserved(rho, vx, vy, vz, P, gamma, Bx, By, Bz)
 
-    # Initial state
-    initial_state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, jnp.array(0.0), jnp.array(0))
-
-    # Estimate max_steps conservatively
-    c02 = gamma * P / rho
-    ca2 = (Bx**2 + By**2 + Bz**2) / rho
-    cap2x = Bx**2 / rho
-    cap2y = By**2 / rho
-    cap2z = Bz**2 / rho
-
-    cmfx = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2x))
-    cmfy = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2y))
-    cmfz = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2z))
-
-    val_max = jnp.maximum(
-        jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)),
-        cmfz + jnp.abs(vz)
-    )
-
-    dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
-
-    max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
-    #max_steps = 1
-
     global_start = time.time()
     tic = time.time()
     t = 0
