@@ -1,0 +1,1963 @@
+HloModule jit_run_scan_full, entry_computation_layout={(f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], s64[])->(f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], s64[])}
+
+get_primitive.13 {
+  Arg_0.14 = f64[64,64,64]{2,1,0} parameter(0)
+  Arg_1.15 = f64[64,64,64]{2,1,0} parameter(1)
+  divide.26 = f64[64,64,64]{2,1,0} divide(Arg_1.15, Arg_0.14)
+  Arg_2.16 = f64[64,64,64]{2,1,0} parameter(2)
+  divide.27 = f64[64,64,64]{2,1,0} divide(Arg_2.16, Arg_0.14)
+  Arg_3.17 = f64[64,64,64]{2,1,0} parameter(3)
+  divide.28 = f64[64,64,64]{2,1,0} divide(Arg_3.17, Arg_0.14)
+  Arg_4.18 = f64[64,64,64]{2,1,0} parameter(4)
+  constant.23 = f64[] constant(0.5)
+  broadcast.24 = f64[64,64,64]{2,1,0} broadcast(constant.23), dimensions={}
+  multiply.29 = f64[64,64,64]{2,1,0} multiply(Arg_0.14, broadcast.24)
+  multiply.30 = f64[64,64,64]{2,1,0} multiply(divide.26, divide.26)
+  multiply.31 = f64[64,64,64]{2,1,0} multiply(divide.27, divide.27)
+  add.32 = f64[64,64,64]{2,1,0} add(multiply.30, multiply.31)
+  multiply.33 = f64[64,64,64]{2,1,0} multiply(divide.28, divide.28)
+  add.34 = f64[64,64,64]{2,1,0} add(add.32, multiply.33)
+  multiply.35 = f64[64,64,64]{2,1,0} multiply(multiply.29, add.34)
+  subtract.36 = f64[64,64,64]{2,1,0} subtract(Arg_4.18, multiply.35)
+  Arg_6.20 = f64[64,64,64]{2,1,0} parameter(6)
+  multiply.37 = f64[64,64,64]{2,1,0} multiply(Arg_6.20, Arg_6.20)
+  Arg_7.21 = f64[64,64,64]{2,1,0} parameter(7)
+  multiply.38 = f64[64,64,64]{2,1,0} multiply(Arg_7.21, Arg_7.21)
+  add.39 = f64[64,64,64]{2,1,0} add(multiply.37, multiply.38)
+  Arg_8.22 = f64[64,64,64]{2,1,0} parameter(8)
+  multiply.40 = f64[64,64,64]{2,1,0} multiply(Arg_8.22, Arg_8.22)
+  add.41 = f64[64,64,64]{2,1,0} add(add.39, multiply.40)
+  multiply.42 = f64[64,64,64]{2,1,0} multiply(add.41, broadcast.24)
+  subtract.43 = f64[64,64,64]{2,1,0} subtract(subtract.36, multiply.42)
+  Arg_5.19 = f64[] parameter(5)
+  constant.25 = f64[] constant(1)
+  subtract.44 = f64[] subtract(Arg_5.19, constant.25)
+  broadcast.45 = f64[64,64,64]{2,1,0} broadcast(subtract.44), dimensions={}
+  multiply.46 = f64[64,64,64]{2,1,0} multiply(subtract.43, broadcast.45)
+  ROOT tuple.47 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}) tuple(Arg_0.14, divide.26, divide.27, divide.28, multiply.46, Arg_6.20, Arg_7.21, Arg_8.22)
+}
+
+region_1.48 {
+  Arg_0.49 = f64[] parameter(0)
+  Arg_1.50 = f64[] parameter(1)
+  ROOT minimum.51 = f64[] minimum(Arg_0.49, Arg_1.50)
+}
+
+region_2.52 {
+  Arg_0.53 = f64[] parameter(0)
+  Arg_1.54 = f64[] parameter(1)
+  ROOT maximum.55 = f64[] maximum(Arg_0.53, Arg_1.54)
+}
+
+_where.56 {
+  Arg_0.57 = pred[8,64,64,64]{3,2,1,0} parameter(0)
+  Arg_1.58 = f64[] parameter(1)
+  broadcast.60 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_1.58), dimensions={}
+  Arg_2.59 = f64[8,64,64,64]{3,2,1,0} parameter(2)
+  ROOT select.61 = f64[8,64,64,64]{3,2,1,0} select(Arg_0.57, broadcast.60, Arg_2.59)
+}
+
+_where.62 {
+  Arg_0.63 = pred[8,64,64,64]{3,2,1,0} parameter(0)
+  Arg_1.64 = f64[] parameter(1)
+  broadcast.66 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_1.64), dimensions={}
+  Arg_2.65 = f64[8,64,64,64]{3,2,1,0} parameter(2)
+  ROOT select.67 = f64[8,64,64,64]{3,2,1,0} select(Arg_0.63, broadcast.66, Arg_2.65)
+}
+
+_where.68 {
+  Arg_0.69 = pred[8,64,64,64]{3,2,1,0} parameter(0)
+  Arg_1.70 = f64[] parameter(1)
+  broadcast.72 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_1.70), dimensions={}
+  Arg_2.71 = f64[8,64,64,64]{3,2,1,0} parameter(2)
+  ROOT select.73 = f64[8,64,64,64]{3,2,1,0} select(Arg_0.69, broadcast.72, Arg_2.71)
+}
+
+region_3.74 {
+  Arg_0.75 = f64[] parameter(0)
+  Arg_1.76 = f64[] parameter(1)
+  ROOT add.77 = f64[] add(Arg_0.75, Arg_1.76)
+}
+
+region_4.78 {
+  Arg_0.79 = f64[] parameter(0)
+  Arg_1.80 = f64[] parameter(1)
+  ROOT add.81 = f64[] add(Arg_0.79, Arg_1.80)
+}
+
+region_5.82 {
+  Arg_0.83 = f64[] parameter(0)
+  Arg_1.84 = f64[] parameter(1)
+  ROOT add.85 = f64[] add(Arg_0.83, Arg_1.84)
+}
+
+region_6.86 {
+  Arg_0.87 = f64[] parameter(0)
+  Arg_1.88 = f64[] parameter(1)
+  ROOT add.89 = f64[] add(Arg_0.87, Arg_1.88)
+}
+
+region_7.90 {
+  Arg_0.91 = f64[] parameter(0)
+  Arg_1.92 = f64[] parameter(1)
+  ROOT add.93 = f64[] add(Arg_0.91, Arg_1.92)
+}
+
+region_8.94 {
+  Arg_0.95 = f64[] parameter(0)
+  Arg_1.96 = f64[] parameter(1)
+  ROOT add.97 = f64[] add(Arg_0.95, Arg_1.96)
+}
+
+region_9.98 {
+  Arg_0.99 = f64[] parameter(0)
+  Arg_1.100 = f64[] parameter(1)
+  ROOT add.101 = f64[] add(Arg_0.99, Arg_1.100)
+}
+
+region_10.102 {
+  Arg_0.103 = f64[] parameter(0)
+  Arg_1.104 = f64[] parameter(1)
+  ROOT add.105 = f64[] add(Arg_0.103, Arg_1.104)
+}
+
+region_11.106 {
+  Arg_0.107 = f64[] parameter(0)
+  Arg_1.108 = f64[] parameter(1)
+  ROOT add.109 = f64[] add(Arg_0.107, Arg_1.108)
+}
+
+region_12.110 {
+  Arg_0.111 = f64[] parameter(0)
+  Arg_1.112 = f64[] parameter(1)
+  ROOT add.113 = f64[] add(Arg_0.111, Arg_1.112)
+}
+
+region_13.114 {
+  Arg_0.115 = f64[] parameter(0)
+  Arg_1.116 = f64[] parameter(1)
+  ROOT add.117 = f64[] add(Arg_0.115, Arg_1.116)
+}
+
+region_14.118 {
+  Arg_0.119 = f64[] parameter(0)
+  Arg_1.120 = f64[] parameter(1)
+  ROOT add.121 = f64[] add(Arg_0.119, Arg_1.120)
+}
+
+region_15.122 {
+  Arg_0.123 = f64[] parameter(0)
+  Arg_1.124 = f64[] parameter(1)
+  ROOT add.125 = f64[] add(Arg_0.123, Arg_1.124)
+}
+
+region_16.126 {
+  Arg_0.127 = f64[] parameter(0)
+  Arg_1.128 = f64[] parameter(1)
+  ROOT add.129 = f64[] add(Arg_0.127, Arg_1.128)
+}
+
+region_17.130 {
+  Arg_0.131 = f64[] parameter(0)
+  Arg_1.132 = f64[] parameter(1)
+  ROOT add.133 = f64[] add(Arg_0.131, Arg_1.132)
+}
+
+region_18.134 {
+  Arg_0.135 = f64[] parameter(0)
+  Arg_1.136 = f64[] parameter(1)
+  ROOT add.137 = f64[] add(Arg_0.135, Arg_1.136)
+}
+
+region_19.138 {
+  Arg_0.139 = f64[] parameter(0)
+  Arg_1.140 = f64[] parameter(1)
+  ROOT add.141 = f64[] add(Arg_0.139, Arg_1.140)
+}
+
+_roll_static.142 {
+  Arg_0.143 = f64[8,64,64,64]{3,2,1,0} parameter(0)
+  slice.144 = f64[8,1,64,64]{3,2,1,0} slice(Arg_0.143), slice={[0:8], [63:64], [0:64], [0:64]}
+  slice.145 = f64[8,63,64,64]{3,2,1,0} slice(Arg_0.143), slice={[0:8], [0:63], [0:64], [0:64]}
+  ROOT concatenate.146 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.144, slice.145), dimensions={1}
+}
+
+_roll_static_0.147 {
+  Arg_0.148 = f64[8,64,64,64]{3,2,1,0} parameter(0)
+  slice.149 = f64[8,64,1,64]{3,2,1,0} slice(Arg_0.148), slice={[0:8], [0:64], [63:64], [0:64]}
+  slice.150 = f64[8,64,63,64]{3,2,1,0} slice(Arg_0.148), slice={[0:8], [0:64], [0:63], [0:64]}
+  ROOT concatenate.151 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.149, slice.150), dimensions={2}
+}
+
+_roll_static_1.152 {
+  Arg_0.153 = f64[8,64,64,64]{3,2,1,0} parameter(0)
+  slice.154 = f64[8,64,64,1]{3,2,1,0} slice(Arg_0.153), slice={[0:8], [0:64], [0:64], [63:64]}
+  slice.155 = f64[8,64,64,63]{3,2,1,0} slice(Arg_0.153), slice={[0:8], [0:64], [0:64], [0:63]}
+  ROOT concatenate.156 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.154, slice.155), dimensions={3}
+}
+
+_where_2.157 {
+  Arg_0.158 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.159 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.160 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.161 = f64[64,64,64]{2,1,0} select(Arg_0.158, Arg_1.159, Arg_2.160)
+}
+
+_where_2.162 {
+  Arg_0.163 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.164 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.165 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.166 = f64[64,64,64]{2,1,0} select(Arg_0.163, Arg_1.164, Arg_2.165)
+}
+
+_where_2.167 {
+  Arg_0.168 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.169 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.170 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.171 = f64[64,64,64]{2,1,0} select(Arg_0.168, Arg_1.169, Arg_2.170)
+}
+
+_where_2.172 {
+  Arg_0.173 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.174 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.175 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.176 = f64[64,64,64]{2,1,0} select(Arg_0.173, Arg_1.174, Arg_2.175)
+}
+
+_where_2.177 {
+  Arg_0.178 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.179 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.180 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.181 = f64[64,64,64]{2,1,0} select(Arg_0.178, Arg_1.179, Arg_2.180)
+}
+
+_where_2.182 {
+  Arg_0.183 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.184 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.185 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.186 = f64[64,64,64]{2,1,0} select(Arg_0.183, Arg_1.184, Arg_2.185)
+}
+
+_where_2.187 {
+  Arg_0.188 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.189 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.190 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.191 = f64[64,64,64]{2,1,0} select(Arg_0.188, Arg_1.189, Arg_2.190)
+}
+
+_where_2.192 {
+  Arg_0.193 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.194 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.195 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.196 = f64[64,64,64]{2,1,0} select(Arg_0.193, Arg_1.194, Arg_2.195)
+}
+
+_where_2.197 {
+  Arg_0.198 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.199 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.200 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.201 = f64[64,64,64]{2,1,0} select(Arg_0.198, Arg_1.199, Arg_2.200)
+}
+
+_where_2.202 {
+  Arg_0.203 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.204 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.205 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.206 = f64[64,64,64]{2,1,0} select(Arg_0.203, Arg_1.204, Arg_2.205)
+}
+
+_where_2.207 {
+  Arg_0.208 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.209 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.210 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.211 = f64[64,64,64]{2,1,0} select(Arg_0.208, Arg_1.209, Arg_2.210)
+}
+
+_where_2.212 {
+  Arg_0.213 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.214 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.215 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.216 = f64[64,64,64]{2,1,0} select(Arg_0.213, Arg_1.214, Arg_2.215)
+}
+
+_where_2.217 {
+  Arg_0.218 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.219 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.220 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.221 = f64[64,64,64]{2,1,0} select(Arg_0.218, Arg_1.219, Arg_2.220)
+}
+
+_where_2.222 {
+  Arg_0.223 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.224 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.225 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.226 = f64[64,64,64]{2,1,0} select(Arg_0.223, Arg_1.224, Arg_2.225)
+}
+
+_where_2.227 {
+  Arg_0.228 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.229 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.230 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.231 = f64[64,64,64]{2,1,0} select(Arg_0.228, Arg_1.229, Arg_2.230)
+}
+
+_where_2.232 {
+  Arg_0.233 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.234 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.235 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.236 = f64[64,64,64]{2,1,0} select(Arg_0.233, Arg_1.234, Arg_2.235)
+}
+
+_where_2.237 {
+  Arg_0.238 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.239 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.240 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.241 = f64[64,64,64]{2,1,0} select(Arg_0.238, Arg_1.239, Arg_2.240)
+}
+
+_where_2.242 {
+  Arg_0.243 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.244 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.245 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.246 = f64[64,64,64]{2,1,0} select(Arg_0.243, Arg_1.244, Arg_2.245)
+}
+
+_where_2.247 {
+  Arg_0.248 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.249 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.250 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.251 = f64[64,64,64]{2,1,0} select(Arg_0.248, Arg_1.249, Arg_2.250)
+}
+
+_where_2.252 {
+  Arg_0.253 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.254 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.255 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.256 = f64[64,64,64]{2,1,0} select(Arg_0.253, Arg_1.254, Arg_2.255)
+}
+
+_where_2.257 {
+  Arg_0.258 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.259 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.260 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.261 = f64[64,64,64]{2,1,0} select(Arg_0.258, Arg_1.259, Arg_2.260)
+}
+
+_where_2.262 {
+  Arg_0.263 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.264 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.265 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.266 = f64[64,64,64]{2,1,0} select(Arg_0.263, Arg_1.264, Arg_2.265)
+}
+
+_where_2.267 {
+  Arg_0.268 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.269 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.270 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.271 = f64[64,64,64]{2,1,0} select(Arg_0.268, Arg_1.269, Arg_2.270)
+}
+
+_where_2.272 {
+  Arg_0.273 = pred[64,64,64]{2,1,0} parameter(0)
+  Arg_1.274 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.275 = f64[64,64,64]{2,1,0} parameter(2)
+  ROOT select.276 = f64[64,64,64]{2,1,0} select(Arg_0.273, Arg_1.274, Arg_2.275)
+}
+
+_roll_static_3.277 {
+  Arg_0.278 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.279 = f64[63,64,64]{2,1,0} slice(Arg_0.278), slice={[1:64], [0:64], [0:64]}
+  slice.280 = f64[1,64,64]{2,1,0} slice(Arg_0.278), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.281 = f64[64,64,64]{2,1,0} concatenate(slice.279, slice.280), dimensions={0}
+}
+
+_roll_static_4.282 {
+  Arg_0.283 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.284 = f64[64,63,64]{2,1,0} slice(Arg_0.283), slice={[0:64], [1:64], [0:64]}
+  slice.285 = f64[64,1,64]{2,1,0} slice(Arg_0.283), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.286 = f64[64,64,64]{2,1,0} concatenate(slice.284, slice.285), dimensions={1}
+}
+
+_roll_static_5.287 {
+  Arg_0.288 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.289 = f64[64,64,63]{2,1,0} slice(Arg_0.288), slice={[0:64], [0:64], [1:64]}
+  slice.290 = f64[64,64,1]{2,1,0} slice(Arg_0.288), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.291 = f64[64,64,64]{2,1,0} concatenate(slice.289, slice.290), dimensions={2}
+}
+
+_roll_static_3.292 {
+  Arg_0.293 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.294 = f64[63,64,64]{2,1,0} slice(Arg_0.293), slice={[1:64], [0:64], [0:64]}
+  slice.295 = f64[1,64,64]{2,1,0} slice(Arg_0.293), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.296 = f64[64,64,64]{2,1,0} concatenate(slice.294, slice.295), dimensions={0}
+}
+
+_roll_static_4.297 {
+  Arg_0.298 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.299 = f64[64,63,64]{2,1,0} slice(Arg_0.298), slice={[0:64], [1:64], [0:64]}
+  slice.300 = f64[64,1,64]{2,1,0} slice(Arg_0.298), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.301 = f64[64,64,64]{2,1,0} concatenate(slice.299, slice.300), dimensions={1}
+}
+
+_roll_static_5.302 {
+  Arg_0.303 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.304 = f64[64,64,63]{2,1,0} slice(Arg_0.303), slice={[0:64], [0:64], [1:64]}
+  slice.305 = f64[64,64,1]{2,1,0} slice(Arg_0.303), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.306 = f64[64,64,64]{2,1,0} concatenate(slice.304, slice.305), dimensions={2}
+}
+
+_roll_static_3.307 {
+  Arg_0.308 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.309 = f64[63,64,64]{2,1,0} slice(Arg_0.308), slice={[1:64], [0:64], [0:64]}
+  slice.310 = f64[1,64,64]{2,1,0} slice(Arg_0.308), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.311 = f64[64,64,64]{2,1,0} concatenate(slice.309, slice.310), dimensions={0}
+}
+
+_roll_static_4.312 {
+  Arg_0.313 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.314 = f64[64,63,64]{2,1,0} slice(Arg_0.313), slice={[0:64], [1:64], [0:64]}
+  slice.315 = f64[64,1,64]{2,1,0} slice(Arg_0.313), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.316 = f64[64,64,64]{2,1,0} concatenate(slice.314, slice.315), dimensions={1}
+}
+
+_roll_static_5.317 {
+  Arg_0.318 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.319 = f64[64,64,63]{2,1,0} slice(Arg_0.318), slice={[0:64], [0:64], [1:64]}
+  slice.320 = f64[64,64,1]{2,1,0} slice(Arg_0.318), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.321 = f64[64,64,64]{2,1,0} concatenate(slice.319, slice.320), dimensions={2}
+}
+
+_roll_static_3.322 {
+  Arg_0.323 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.324 = f64[63,64,64]{2,1,0} slice(Arg_0.323), slice={[1:64], [0:64], [0:64]}
+  slice.325 = f64[1,64,64]{2,1,0} slice(Arg_0.323), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.326 = f64[64,64,64]{2,1,0} concatenate(slice.324, slice.325), dimensions={0}
+}
+
+_roll_static_4.327 {
+  Arg_0.328 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.329 = f64[64,63,64]{2,1,0} slice(Arg_0.328), slice={[0:64], [1:64], [0:64]}
+  slice.330 = f64[64,1,64]{2,1,0} slice(Arg_0.328), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.331 = f64[64,64,64]{2,1,0} concatenate(slice.329, slice.330), dimensions={1}
+}
+
+_roll_static_5.332 {
+  Arg_0.333 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.334 = f64[64,64,63]{2,1,0} slice(Arg_0.333), slice={[0:64], [0:64], [1:64]}
+  slice.335 = f64[64,64,1]{2,1,0} slice(Arg_0.333), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.336 = f64[64,64,64]{2,1,0} concatenate(slice.334, slice.335), dimensions={2}
+}
+
+_roll_static_3.337 {
+  Arg_0.338 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.339 = f64[63,64,64]{2,1,0} slice(Arg_0.338), slice={[1:64], [0:64], [0:64]}
+  slice.340 = f64[1,64,64]{2,1,0} slice(Arg_0.338), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.341 = f64[64,64,64]{2,1,0} concatenate(slice.339, slice.340), dimensions={0}
+}
+
+_roll_static_4.342 {
+  Arg_0.343 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.344 = f64[64,63,64]{2,1,0} slice(Arg_0.343), slice={[0:64], [1:64], [0:64]}
+  slice.345 = f64[64,1,64]{2,1,0} slice(Arg_0.343), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.346 = f64[64,64,64]{2,1,0} concatenate(slice.344, slice.345), dimensions={1}
+}
+
+_roll_static_5.347 {
+  Arg_0.348 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.349 = f64[64,64,63]{2,1,0} slice(Arg_0.348), slice={[0:64], [0:64], [1:64]}
+  slice.350 = f64[64,64,1]{2,1,0} slice(Arg_0.348), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.351 = f64[64,64,64]{2,1,0} concatenate(slice.349, slice.350), dimensions={2}
+}
+
+_roll_static_3.352 {
+  Arg_0.353 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.354 = f64[63,64,64]{2,1,0} slice(Arg_0.353), slice={[1:64], [0:64], [0:64]}
+  slice.355 = f64[1,64,64]{2,1,0} slice(Arg_0.353), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.356 = f64[64,64,64]{2,1,0} concatenate(slice.354, slice.355), dimensions={0}
+}
+
+_roll_static_4.357 {
+  Arg_0.358 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.359 = f64[64,63,64]{2,1,0} slice(Arg_0.358), slice={[0:64], [1:64], [0:64]}
+  slice.360 = f64[64,1,64]{2,1,0} slice(Arg_0.358), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.361 = f64[64,64,64]{2,1,0} concatenate(slice.359, slice.360), dimensions={1}
+}
+
+_roll_static_5.362 {
+  Arg_0.363 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.364 = f64[64,64,63]{2,1,0} slice(Arg_0.363), slice={[0:64], [0:64], [1:64]}
+  slice.365 = f64[64,64,1]{2,1,0} slice(Arg_0.363), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.366 = f64[64,64,64]{2,1,0} concatenate(slice.364, slice.365), dimensions={2}
+}
+
+_roll_static_3.367 {
+  Arg_0.368 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.369 = f64[63,64,64]{2,1,0} slice(Arg_0.368), slice={[1:64], [0:64], [0:64]}
+  slice.370 = f64[1,64,64]{2,1,0} slice(Arg_0.368), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.371 = f64[64,64,64]{2,1,0} concatenate(slice.369, slice.370), dimensions={0}
+}
+
+_roll_static_4.372 {
+  Arg_0.373 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.374 = f64[64,63,64]{2,1,0} slice(Arg_0.373), slice={[0:64], [1:64], [0:64]}
+  slice.375 = f64[64,1,64]{2,1,0} slice(Arg_0.373), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.376 = f64[64,64,64]{2,1,0} concatenate(slice.374, slice.375), dimensions={1}
+}
+
+_roll_static_5.377 {
+  Arg_0.378 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.379 = f64[64,64,63]{2,1,0} slice(Arg_0.378), slice={[0:64], [0:64], [1:64]}
+  slice.380 = f64[64,64,1]{2,1,0} slice(Arg_0.378), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.381 = f64[64,64,64]{2,1,0} concatenate(slice.379, slice.380), dimensions={2}
+}
+
+_roll_static_3.382 {
+  Arg_0.383 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.384 = f64[63,64,64]{2,1,0} slice(Arg_0.383), slice={[1:64], [0:64], [0:64]}
+  slice.385 = f64[1,64,64]{2,1,0} slice(Arg_0.383), slice={[0:1], [0:64], [0:64]}
+  ROOT concatenate.386 = f64[64,64,64]{2,1,0} concatenate(slice.384, slice.385), dimensions={0}
+}
+
+_roll_static_4.387 {
+  Arg_0.388 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.389 = f64[64,63,64]{2,1,0} slice(Arg_0.388), slice={[0:64], [1:64], [0:64]}
+  slice.390 = f64[64,1,64]{2,1,0} slice(Arg_0.388), slice={[0:64], [0:1], [0:64]}
+  ROOT concatenate.391 = f64[64,64,64]{2,1,0} concatenate(slice.389, slice.390), dimensions={1}
+}
+
+_roll_static_5.392 {
+  Arg_0.393 = f64[64,64,64]{2,1,0} parameter(0)
+  slice.394 = f64[64,64,63]{2,1,0} slice(Arg_0.393), slice={[0:64], [0:64], [1:64]}
+  slice.395 = f64[64,64,1]{2,1,0} slice(Arg_0.393), slice={[0:64], [0:64], [0:1]}
+  ROOT concatenate.396 = f64[64,64,64]{2,1,0} concatenate(slice.394, slice.395), dimensions={2}
+}
+
+update.397 {
+  Arg_0.398 = f64[64,64,64]{2,1,0} parameter(0)
+  Arg_1.399 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.400 = f64[64,64,64]{2,1,0} parameter(2)
+  Arg_3.401 = f64[64,64,64]{2,1,0} parameter(3)
+  Arg_4.402 = f64[64,64,64]{2,1,0} parameter(4)
+  Arg_8.406 = f64[] parameter(8)
+  Arg_10.408 = f64[64,64,64]{2,1,0} parameter(10)
+  Arg_11.409 = f64[64,64,64]{2,1,0} parameter(11)
+  Arg_12.410 = f64[64,64,64]{2,1,0} parameter(12)
+  call.432 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}) call(Arg_0.398, Arg_1.399, Arg_2.400, Arg_3.401, Arg_4.402, Arg_8.406, Arg_10.408, Arg_11.409, Arg_12.410), to_apply=get_primitive.13
+  get-tuple-element.433 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=0
+  Arg_9.407 = f64[] parameter(9)
+  Arg_5.403 = f64[] parameter(5)
+  reshape.506 = f64[1]{0} reshape(Arg_5.403)
+  Arg_6.404 = f64[] parameter(6)
+  reshape.507 = f64[1]{0} reshape(Arg_6.404)
+  Arg_7.405 = f64[] parameter(7)
+  reshape.508 = f64[1]{0} reshape(Arg_7.405)
+  concatenate.509 = f64[3]{0} concatenate(reshape.506, reshape.507, reshape.508), dimensions={0}
+  constant.430 = f64[] constant(inf)
+  reduce.510 = f64[] reduce(concatenate.509, constant.430), dimensions={0}, to_apply=region_1.48
+  multiply.511 = f64[] multiply(Arg_9.407, reduce.510)
+  broadcast.450 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  get-tuple-element.437 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=4
+  multiply.451 = f64[64,64,64]{2,1,0} multiply(broadcast.450, get-tuple-element.437)
+  divide.452 = f64[64,64,64]{2,1,0} divide(multiply.451, get-tuple-element.433)
+  get-tuple-element.438 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=5
+  multiply.453 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.438, get-tuple-element.438)
+  get-tuple-element.439 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=6
+  multiply.454 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.439, get-tuple-element.439)
+  add.455 = f64[64,64,64]{2,1,0} add(multiply.453, multiply.454)
+  get-tuple-element.440 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=7
+  multiply.456 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.440, get-tuple-element.440)
+  add.457 = f64[64,64,64]{2,1,0} add(add.455, multiply.456)
+  divide.458 = f64[64,64,64]{2,1,0} divide(add.457, get-tuple-element.433)
+  add.465 = f64[64,64,64]{2,1,0} add(divide.452, divide.458)
+  constant.425 = f64[] constant(0.5)
+  broadcast.426 = f64[64,64,64]{2,1,0} broadcast(constant.425), dimensions={}
+  multiply.466 = f64[64,64,64]{2,1,0} multiply(add.465, broadcast.426)
+  add.467 = f64[64,64,64]{2,1,0} add(divide.452, divide.458)
+  multiply.468 = f64[64,64,64]{2,1,0} multiply(add.467, add.467)
+  constant.423 = f64[] constant(4)
+  broadcast.424 = f64[64,64,64]{2,1,0} broadcast(constant.423), dimensions={}
+  multiply.469 = f64[64,64,64]{2,1,0} multiply(divide.452, broadcast.424)
+  multiply.459 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.438, get-tuple-element.438)
+  divide.460 = f64[64,64,64]{2,1,0} divide(multiply.459, get-tuple-element.433)
+  multiply.470 = f64[64,64,64]{2,1,0} multiply(multiply.469, divide.460)
+  subtract.471 = f64[64,64,64]{2,1,0} subtract(multiply.468, multiply.470)
+  sqrt.472 = f64[64,64,64]{2,1,0} sqrt(subtract.471)
+  multiply.473 = f64[64,64,64]{2,1,0} multiply(sqrt.472, broadcast.426)
+  add.474 = f64[64,64,64]{2,1,0} add(multiply.466, multiply.473)
+  sqrt.475 = f64[64,64,64]{2,1,0} sqrt(add.474)
+  get-tuple-element.434 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=1
+  abs.498 = f64[64,64,64]{2,1,0} abs(get-tuple-element.434)
+  add.499 = f64[64,64,64]{2,1,0} add(sqrt.475, abs.498)
+  add.476 = f64[64,64,64]{2,1,0} add(divide.452, divide.458)
+  multiply.477 = f64[64,64,64]{2,1,0} multiply(add.476, broadcast.426)
+  add.478 = f64[64,64,64]{2,1,0} add(divide.452, divide.458)
+  multiply.479 = f64[64,64,64]{2,1,0} multiply(add.478, add.478)
+  multiply.480 = f64[64,64,64]{2,1,0} multiply(divide.452, broadcast.424)
+  multiply.461 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.439, get-tuple-element.439)
+  divide.462 = f64[64,64,64]{2,1,0} divide(multiply.461, get-tuple-element.433)
+  multiply.481 = f64[64,64,64]{2,1,0} multiply(multiply.480, divide.462)
+  subtract.482 = f64[64,64,64]{2,1,0} subtract(multiply.479, multiply.481)
+  sqrt.483 = f64[64,64,64]{2,1,0} sqrt(subtract.482)
+  multiply.484 = f64[64,64,64]{2,1,0} multiply(sqrt.483, broadcast.426)
+  add.485 = f64[64,64,64]{2,1,0} add(multiply.477, multiply.484)
+  sqrt.486 = f64[64,64,64]{2,1,0} sqrt(add.485)
+  get-tuple-element.435 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=2
+  abs.500 = f64[64,64,64]{2,1,0} abs(get-tuple-element.435)
+  add.501 = f64[64,64,64]{2,1,0} add(sqrt.486, abs.500)
+  maximum.502 = f64[64,64,64]{2,1,0} maximum(add.499, add.501)
+  add.487 = f64[64,64,64]{2,1,0} add(divide.452, divide.458)
+  multiply.488 = f64[64,64,64]{2,1,0} multiply(add.487, broadcast.426)
+  add.489 = f64[64,64,64]{2,1,0} add(divide.452, divide.458)
+  multiply.490 = f64[64,64,64]{2,1,0} multiply(add.489, add.489)
+  multiply.491 = f64[64,64,64]{2,1,0} multiply(divide.452, broadcast.424)
+  multiply.463 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.440, get-tuple-element.440)
+  divide.464 = f64[64,64,64]{2,1,0} divide(multiply.463, get-tuple-element.433)
+  multiply.492 = f64[64,64,64]{2,1,0} multiply(multiply.491, divide.464)
+  subtract.493 = f64[64,64,64]{2,1,0} subtract(multiply.490, multiply.492)
+  sqrt.494 = f64[64,64,64]{2,1,0} sqrt(subtract.493)
+  multiply.495 = f64[64,64,64]{2,1,0} multiply(sqrt.494, broadcast.426)
+  add.496 = f64[64,64,64]{2,1,0} add(multiply.488, multiply.495)
+  sqrt.497 = f64[64,64,64]{2,1,0} sqrt(add.496)
+  get-tuple-element.436 = f64[64,64,64]{2,1,0} get-tuple-element(call.432), index=3
+  abs.503 = f64[64,64,64]{2,1,0} abs(get-tuple-element.436)
+  add.504 = f64[64,64,64]{2,1,0} add(sqrt.497, abs.503)
+  maximum.505 = f64[64,64,64]{2,1,0} maximum(maximum.502, add.504)
+  constant.429 = f64[] constant(-inf)
+  reduce.512 = f64[] reduce(maximum.505, constant.429), dimensions={0,1,2}, to_apply=region_2.52
+  divide.513 = f64[] divide(multiply.511, reduce.512)
+  divide.1499 = f64[] divide(divide.513, Arg_5.403)
+  broadcast.1502 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  constant.431 = f64[] constant(0.5)
+  multiply.626 = f64[] multiply(divide.513, constant.431)
+  broadcast.631 = f64[64,64,64]{2,1,0} broadcast(multiply.626), dimensions={}
+  reshape.441 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.433)
+  reshape.442 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.437)
+  reshape.443 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.434)
+  reshape.444 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.435)
+  reshape.445 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.436)
+  reshape.446 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.438)
+  reshape.447 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.439)
+  reshape.448 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.440)
+  concatenate.449 = f64[8,64,64,64]{3,2,1,0} concatenate(reshape.441, reshape.442, reshape.443, reshape.444, reshape.445, reshape.446, reshape.447, reshape.448), dimensions={0}
+  slice.517 = f64[8,63,64,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [1:64], [0:64], [0:64]}
+  slice.518 = f64[8,1,64,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:1], [0:64], [0:64]}
+  concatenate.519 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.517, slice.518), dimensions={1}
+  slice.514 = f64[8,1,64,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [63:64], [0:64], [0:64]}
+  slice.515 = f64[8,63,64,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:63], [0:64], [0:64]}
+  concatenate.516 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.514, slice.515), dimensions={1}
+  subtract.522 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.519, concatenate.516)
+  constant.421 = f64[] constant(0.5)
+  broadcast.422 = f64[8,64,64,64]{3,2,1,0} broadcast(constant.421), dimensions={}
+  multiply.523 = f64[8,64,64,64]{3,2,1,0} multiply(subtract.522, broadcast.422)
+  sign.524 = f64[8,64,64,64]{3,2,1,0} sign(multiply.523)
+  abs.531 = f64[8,64,64,64]{3,2,1,0} abs(multiply.523)
+  subtract.520 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.449, concatenate.516)
+  subtract.521 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.519, concatenate.449)
+  multiply.528 = f64[8,64,64,64]{3,2,1,0} multiply(subtract.520, subtract.521)
+  constant.419 = f64[] constant(0)
+  broadcast.420 = f64[8,64,64,64]{3,2,1,0} broadcast(constant.419), dimensions={}
+  compare.529 = pred[8,64,64,64]{3,2,1,0} compare(multiply.528, broadcast.420), direction=LT
+  constant.428 = f64[] constant(0)
+  abs.525 = f64[8,64,64,64]{3,2,1,0} abs(subtract.520)
+  abs.526 = f64[8,64,64,64]{3,2,1,0} abs(subtract.521)
+  minimum.527 = f64[8,64,64,64]{3,2,1,0} minimum(abs.525, abs.526)
+  call.530 = f64[8,64,64,64]{3,2,1,0} call(compare.529, constant.428, minimum.527), to_apply=_where.56
+  minimum.532 = f64[8,64,64,64]{3,2,1,0} minimum(abs.531, call.530)
+  multiply.533 = f64[8,64,64,64]{3,2,1,0} multiply(sign.524, minimum.532)
+  slice.577 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[2:3], [0:64], [0:64], [0:64]}
+  reshape.578 = f64[64,64,64]{2,1,0} reshape(slice.577)
+  slice.537 = f64[8,64,63,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [1:64], [0:64]}
+  slice.538 = f64[8,64,1,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [0:1], [0:64]}
+  concatenate.539 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.537, slice.538), dimensions={2}
+  slice.534 = f64[8,64,1,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [63:64], [0:64]}
+  slice.535 = f64[8,64,63,64]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [0:63], [0:64]}
+  concatenate.536 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.534, slice.535), dimensions={2}
+  subtract.542 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.539, concatenate.536)
+  multiply.543 = f64[8,64,64,64]{3,2,1,0} multiply(subtract.542, broadcast.422)
+  sign.544 = f64[8,64,64,64]{3,2,1,0} sign(multiply.543)
+  abs.551 = f64[8,64,64,64]{3,2,1,0} abs(multiply.543)
+  subtract.540 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.449, concatenate.536)
+  subtract.541 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.539, concatenate.449)
+  multiply.548 = f64[8,64,64,64]{3,2,1,0} multiply(subtract.540, subtract.541)
+  compare.549 = pred[8,64,64,64]{3,2,1,0} compare(multiply.548, broadcast.420), direction=LT
+  abs.545 = f64[8,64,64,64]{3,2,1,0} abs(subtract.540)
+  abs.546 = f64[8,64,64,64]{3,2,1,0} abs(subtract.541)
+  minimum.547 = f64[8,64,64,64]{3,2,1,0} minimum(abs.545, abs.546)
+  call.550 = f64[8,64,64,64]{3,2,1,0} call(compare.549, constant.428, minimum.547), to_apply=_where.62
+  minimum.552 = f64[8,64,64,64]{3,2,1,0} minimum(abs.551, call.550)
+  multiply.553 = f64[8,64,64,64]{3,2,1,0} multiply(sign.544, minimum.552)
+  slice.588 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[3:4], [0:64], [0:64], [0:64]}
+  reshape.589 = f64[64,64,64]{2,1,0} reshape(slice.588)
+  add.604 = f64[64,64,64]{2,1,0} add(reshape.578, reshape.589)
+  slice.557 = f64[8,64,64,63]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [0:64], [1:64]}
+  slice.558 = f64[8,64,64,1]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [0:64], [0:1]}
+  concatenate.559 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.557, slice.558), dimensions={3}
+  slice.554 = f64[8,64,64,1]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [0:64], [63:64]}
+  slice.555 = f64[8,64,64,63]{3,2,1,0} slice(concatenate.449), slice={[0:8], [0:64], [0:64], [0:63]}
+  concatenate.556 = f64[8,64,64,64]{3,2,1,0} concatenate(slice.554, slice.555), dimensions={3}
+  subtract.562 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.559, concatenate.556)
+  multiply.563 = f64[8,64,64,64]{3,2,1,0} multiply(subtract.562, broadcast.422)
+  sign.564 = f64[8,64,64,64]{3,2,1,0} sign(multiply.563)
+  abs.571 = f64[8,64,64,64]{3,2,1,0} abs(multiply.563)
+  subtract.560 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.449, concatenate.556)
+  subtract.561 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.559, concatenate.449)
+  multiply.568 = f64[8,64,64,64]{3,2,1,0} multiply(subtract.560, subtract.561)
+  compare.569 = pred[8,64,64,64]{3,2,1,0} compare(multiply.568, broadcast.420), direction=LT
+  abs.565 = f64[8,64,64,64]{3,2,1,0} abs(subtract.560)
+  abs.566 = f64[8,64,64,64]{3,2,1,0} abs(subtract.561)
+  minimum.567 = f64[8,64,64,64]{3,2,1,0} minimum(abs.565, abs.566)
+  call.570 = f64[8,64,64,64]{3,2,1,0} call(compare.569, constant.428, minimum.567), to_apply=_where.68
+  minimum.572 = f64[8,64,64,64]{3,2,1,0} minimum(abs.571, call.570)
+  multiply.573 = f64[8,64,64,64]{3,2,1,0} multiply(sign.564, minimum.572)
+  slice.599 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[4:5], [0:64], [0:64], [0:64]}
+  reshape.600 = f64[64,64,64]{2,1,0} reshape(slice.599)
+  add.605 = f64[64,64,64]{2,1,0} add(add.604, reshape.600)
+  multiply.627 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.433, add.605)
+  reshape.606 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.434)
+  reshape.607 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.435)
+  reshape.608 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.436)
+  concatenate.609 = f64[3,64,64,64]{3,2,1,0} concatenate(reshape.606, reshape.607, reshape.608), dimensions={0}
+  slice.574 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[0:1], [0:64], [0:64], [0:64]}
+  slice.584 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[0:1], [0:64], [0:64], [0:64]}
+  slice.594 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[0:1], [0:64], [0:64], [0:64]}
+  concatenate.615 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.574, slice.584, slice.594), dimensions={0}
+  multiply.628 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.615)
+  reduce.629 = f64[64,64,64]{2,1,0} reduce(multiply.628, constant.428), dimensions={0}, to_apply=region_3.74
+  add.630 = f64[64,64,64]{2,1,0} add(multiply.627, reduce.629)
+  multiply.632 = f64[64,64,64]{2,1,0} multiply(broadcast.631, add.630)
+  subtract.633 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.433, multiply.632)
+  reshape.719 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.633)
+  multiply.634 = f64[] multiply(divide.513, constant.431)
+  broadcast.641 = f64[64,64,64]{2,1,0} broadcast(multiply.634), dimensions={}
+  broadcast.635 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  multiply.636 = f64[64,64,64]{2,1,0} multiply(broadcast.635, get-tuple-element.437)
+  multiply.637 = f64[64,64,64]{2,1,0} multiply(multiply.636, add.605)
+  slice.575 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[1:2], [0:64], [0:64], [0:64]}
+  slice.585 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[1:2], [0:64], [0:64], [0:64]}
+  slice.595 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[1:2], [0:64], [0:64], [0:64]}
+  concatenate.616 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.575, slice.585, slice.595), dimensions={0}
+  multiply.638 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.616)
+  reduce.639 = f64[64,64,64]{2,1,0} reduce(multiply.638, constant.428), dimensions={0}, to_apply=region_4.78
+  add.640 = f64[64,64,64]{2,1,0} add(multiply.637, reduce.639)
+  multiply.642 = f64[64,64,64]{2,1,0} multiply(broadcast.641, add.640)
+  subtract.643 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.437, multiply.642)
+  reshape.720 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.643)
+  multiply.644 = f64[] multiply(divide.513, constant.431)
+  broadcast.655 = f64[64,64,64]{2,1,0} broadcast(multiply.644), dimensions={}
+  slice.587 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[2:3], [0:64], [0:64], [0:64]}
+  slice.597 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[2:3], [0:64], [0:64], [0:64]}
+  concatenate.617 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.577, slice.587, slice.597), dimensions={0}
+  multiply.645 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.617)
+  reduce.646 = f64[64,64,64]{2,1,0} reduce(multiply.645, constant.428), dimensions={0}, to_apply=region_5.82
+  constant.417 = f64[] constant(1)
+  broadcast.418 = f64[64,64,64]{2,1,0} broadcast(constant.417), dimensions={}
+  divide.614 = f64[64,64,64]{2,1,0} divide(broadcast.418, get-tuple-element.433)
+  reshape.576 = f64[64,64,64]{2,1,0} reshape(slice.575)
+  slice.581 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[5:6], [0:64], [0:64], [0:64]}
+  slice.582 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[6:7], [0:64], [0:64], [0:64]}
+  slice.583 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[7:8], [0:64], [0:64], [0:64]}
+  concatenate.621 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.581, slice.582, slice.583), dimensions={0}
+  reshape.610 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.438)
+  reshape.611 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.439)
+  reshape.612 = f64[1,64,64,64]{3,2,1,0} reshape(get-tuple-element.440)
+  concatenate.613 = f64[3,64,64,64]{3,2,1,0} concatenate(reshape.610, reshape.611, reshape.612), dimensions={0}
+  multiply.647 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.621, concatenate.613)
+  reduce.648 = f64[64,64,64]{2,1,0} reduce(multiply.647, constant.428), dimensions={0}, to_apply=region_6.86
+  add.649 = f64[64,64,64]{2,1,0} add(reshape.576, reduce.648)
+  slice.591 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[5:6], [0:64], [0:64], [0:64]}
+  slice.601 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[5:6], [0:64], [0:64], [0:64]}
+  concatenate.620 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.581, slice.591, slice.601), dimensions={0}
+  multiply.650 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.620, concatenate.613)
+  reduce.651 = f64[64,64,64]{2,1,0} reduce(multiply.650, constant.428), dimensions={0}, to_apply=region_7.90
+  subtract.652 = f64[64,64,64]{2,1,0} subtract(add.649, reduce.651)
+  multiply.653 = f64[64,64,64]{2,1,0} multiply(divide.614, subtract.652)
+  add.654 = f64[64,64,64]{2,1,0} add(reduce.646, multiply.653)
+  multiply.656 = f64[64,64,64]{2,1,0} multiply(broadcast.655, add.654)
+  subtract.657 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.434, multiply.656)
+  reshape.721 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.657)
+  multiply.658 = f64[] multiply(divide.513, constant.431)
+  broadcast.669 = f64[64,64,64]{2,1,0} broadcast(multiply.658), dimensions={}
+  slice.579 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[3:4], [0:64], [0:64], [0:64]}
+  slice.598 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[3:4], [0:64], [0:64], [0:64]}
+  concatenate.618 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.579, slice.588, slice.598), dimensions={0}
+  multiply.659 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.618)
+  reduce.660 = f64[64,64,64]{2,1,0} reduce(multiply.659, constant.428), dimensions={0}, to_apply=region_8.94
+  reshape.586 = f64[64,64,64]{2,1,0} reshape(slice.585)
+  slice.592 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[6:7], [0:64], [0:64], [0:64]}
+  slice.593 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[7:8], [0:64], [0:64], [0:64]}
+  concatenate.623 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.591, slice.592, slice.593), dimensions={0}
+  multiply.661 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.623, concatenate.613)
+  reduce.662 = f64[64,64,64]{2,1,0} reduce(multiply.661, constant.428), dimensions={0}, to_apply=region_9.98
+  add.663 = f64[64,64,64]{2,1,0} add(reshape.586, reduce.662)
+  slice.602 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[6:7], [0:64], [0:64], [0:64]}
+  concatenate.622 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.582, slice.592, slice.602), dimensions={0}
+  multiply.664 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.622, concatenate.613)
+  reduce.665 = f64[64,64,64]{2,1,0} reduce(multiply.664, constant.428), dimensions={0}, to_apply=region_10.102
+  subtract.666 = f64[64,64,64]{2,1,0} subtract(add.663, reduce.665)
+  multiply.667 = f64[64,64,64]{2,1,0} multiply(divide.614, subtract.666)
+  add.668 = f64[64,64,64]{2,1,0} add(reduce.660, multiply.667)
+  multiply.670 = f64[64,64,64]{2,1,0} multiply(broadcast.669, add.668)
+  subtract.671 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.435, multiply.670)
+  reshape.722 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.671)
+  multiply.672 = f64[] multiply(divide.513, constant.431)
+  broadcast.683 = f64[64,64,64]{2,1,0} broadcast(multiply.672), dimensions={}
+  slice.580 = f64[1,64,64,64]{3,2,1,0} slice(multiply.533), slice={[4:5], [0:64], [0:64], [0:64]}
+  slice.590 = f64[1,64,64,64]{3,2,1,0} slice(multiply.553), slice={[4:5], [0:64], [0:64], [0:64]}
+  concatenate.619 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.580, slice.590, slice.599), dimensions={0}
+  multiply.673 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.619)
+  reduce.674 = f64[64,64,64]{2,1,0} reduce(multiply.673, constant.428), dimensions={0}, to_apply=region_11.106
+  reshape.596 = f64[64,64,64]{2,1,0} reshape(slice.595)
+  slice.603 = f64[1,64,64,64]{3,2,1,0} slice(multiply.573), slice={[7:8], [0:64], [0:64], [0:64]}
+  concatenate.625 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.601, slice.602, slice.603), dimensions={0}
+  multiply.675 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.625, concatenate.613)
+  reduce.676 = f64[64,64,64]{2,1,0} reduce(multiply.675, constant.428), dimensions={0}, to_apply=region_12.110
+  add.677 = f64[64,64,64]{2,1,0} add(reshape.596, reduce.676)
+  concatenate.624 = f64[3,64,64,64]{3,2,1,0} concatenate(slice.583, slice.593, slice.603), dimensions={0}
+  multiply.678 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.624, concatenate.613)
+  reduce.679 = f64[64,64,64]{2,1,0} reduce(multiply.678, constant.428), dimensions={0}, to_apply=region_13.114
+  subtract.680 = f64[64,64,64]{2,1,0} subtract(add.677, reduce.679)
+  multiply.681 = f64[64,64,64]{2,1,0} multiply(divide.614, subtract.680)
+  add.682 = f64[64,64,64]{2,1,0} add(reduce.674, multiply.681)
+  multiply.684 = f64[64,64,64]{2,1,0} multiply(broadcast.683, add.682)
+  subtract.685 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.436, multiply.684)
+  reshape.723 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.685)
+  multiply.686 = f64[] multiply(divide.513, constant.431)
+  broadcast.694 = f64[64,64,64]{2,1,0} broadcast(multiply.686), dimensions={}
+  multiply.687 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.438, add.605)
+  multiply.688 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.620)
+  reduce.689 = f64[64,64,64]{2,1,0} reduce(multiply.688, constant.428), dimensions={0}, to_apply=region_14.118
+  add.690 = f64[64,64,64]{2,1,0} add(multiply.687, reduce.689)
+  multiply.691 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.613, concatenate.617)
+  reduce.692 = f64[64,64,64]{2,1,0} reduce(multiply.691, constant.428), dimensions={0}, to_apply=region_15.122
+  subtract.693 = f64[64,64,64]{2,1,0} subtract(add.690, reduce.692)
+  multiply.695 = f64[64,64,64]{2,1,0} multiply(broadcast.694, subtract.693)
+  subtract.696 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.438, multiply.695)
+  reshape.724 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.696)
+  multiply.697 = f64[] multiply(divide.513, constant.431)
+  broadcast.705 = f64[64,64,64]{2,1,0} broadcast(multiply.697), dimensions={}
+  multiply.698 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.439, add.605)
+  multiply.699 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.622)
+  reduce.700 = f64[64,64,64]{2,1,0} reduce(multiply.699, constant.428), dimensions={0}, to_apply=region_16.126
+  add.701 = f64[64,64,64]{2,1,0} add(multiply.698, reduce.700)
+  multiply.702 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.613, concatenate.618)
+  reduce.703 = f64[64,64,64]{2,1,0} reduce(multiply.702, constant.428), dimensions={0}, to_apply=region_17.130
+  subtract.704 = f64[64,64,64]{2,1,0} subtract(add.701, reduce.703)
+  multiply.706 = f64[64,64,64]{2,1,0} multiply(broadcast.705, subtract.704)
+  subtract.707 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.439, multiply.706)
+  reshape.725 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.707)
+  multiply.708 = f64[] multiply(divide.513, constant.431)
+  broadcast.716 = f64[64,64,64]{2,1,0} broadcast(multiply.708), dimensions={}
+  multiply.709 = f64[64,64,64]{2,1,0} multiply(get-tuple-element.440, add.605)
+  multiply.710 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.609, concatenate.624)
+  reduce.711 = f64[64,64,64]{2,1,0} reduce(multiply.710, constant.428), dimensions={0}, to_apply=region_18.134
+  add.712 = f64[64,64,64]{2,1,0} add(multiply.709, reduce.711)
+  multiply.713 = f64[3,64,64,64]{3,2,1,0} multiply(concatenate.613, concatenate.619)
+  reduce.714 = f64[64,64,64]{2,1,0} reduce(multiply.713, constant.428), dimensions={0}, to_apply=region_19.138
+  subtract.715 = f64[64,64,64]{2,1,0} subtract(add.712, reduce.714)
+  multiply.717 = f64[64,64,64]{2,1,0} multiply(broadcast.716, subtract.715)
+  subtract.718 = f64[64,64,64]{2,1,0} subtract(get-tuple-element.440, multiply.717)
+  reshape.726 = f64[1,64,64,64]{3,2,1,0} reshape(subtract.718)
+  concatenate.727 = f64[8,64,64,64]{3,2,1,0} concatenate(reshape.719, reshape.720, reshape.721, reshape.722, reshape.723, reshape.724, reshape.725, reshape.726), dimensions={0}
+  broadcast.732 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_5.403), dimensions={}
+  multiply.733 = f64[8,64,64,64]{3,2,1,0} multiply(multiply.533, broadcast.732)
+  constant.415 = f64[] constant(2)
+  broadcast.416 = f64[8,64,64,64]{3,2,1,0} broadcast(constant.415), dimensions={}
+  divide.734 = f64[8,64,64,64]{3,2,1,0} divide(multiply.733, broadcast.416)
+  subtract.735 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.727, divide.734)
+  call.736 = f64[8,64,64,64]{3,2,1,0} call(subtract.735), to_apply=_roll_static.142
+  slice.779 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[2:3], [0:64], [0:64], [0:64]}
+  reshape.780 = f64[64,64,64]{2,1,0} reshape(slice.779)
+  broadcast.728 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_5.403), dimensions={}
+  multiply.729 = f64[8,64,64,64]{3,2,1,0} multiply(multiply.533, broadcast.728)
+  divide.730 = f64[8,64,64,64]{3,2,1,0} divide(multiply.729, broadcast.416)
+  add.731 = f64[8,64,64,64]{3,2,1,0} add(concatenate.727, divide.730)
+  slice.781 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[2:3], [0:64], [0:64], [0:64]}
+  reshape.782 = f64[64,64,64]{2,1,0} reshape(slice.781)
+  add.963 = f64[64,64,64]{2,1,0} add(reshape.780, reshape.782)
+  multiply.964 = f64[64,64,64]{2,1,0} multiply(add.963, broadcast.426)
+  slice.769 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[1:2], [0:64], [0:64], [0:64]}
+  reshape.770 = f64[64,64,64]{2,1,0} reshape(slice.769)
+  slice.817 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[5:6], [0:64], [0:64], [0:64]}
+  reshape.818 = f64[64,64,64]{2,1,0} reshape(slice.817)
+  multiply.896 = f64[64,64,64]{2,1,0} multiply(reshape.818, reshape.818)
+  slice.829 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[6:7], [0:64], [0:64], [0:64]}
+  reshape.830 = f64[64,64,64]{2,1,0} reshape(slice.829)
+  multiply.897 = f64[64,64,64]{2,1,0} multiply(reshape.830, reshape.830)
+  add.898 = f64[64,64,64]{2,1,0} add(multiply.896, multiply.897)
+  slice.841 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[7:8], [0:64], [0:64], [0:64]}
+  reshape.842 = f64[64,64,64]{2,1,0} reshape(slice.841)
+  multiply.899 = f64[64,64,64]{2,1,0} multiply(reshape.842, reshape.842)
+  add.900 = f64[64,64,64]{2,1,0} add(add.898, multiply.899)
+  multiply.901 = f64[64,64,64]{2,1,0} multiply(add.900, broadcast.426)
+  add.902 = f64[64,64,64]{2,1,0} add(reshape.770, multiply.901)
+  multiply.903 = f64[64,64,64]{2,1,0} multiply(reshape.818, reshape.818)
+  subtract.904 = f64[64,64,64]{2,1,0} subtract(add.902, multiply.903)
+  slice.767 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[1:2], [0:64], [0:64], [0:64]}
+  reshape.768 = f64[64,64,64]{2,1,0} reshape(slice.767)
+  slice.815 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[5:6], [0:64], [0:64], [0:64]}
+  reshape.816 = f64[64,64,64]{2,1,0} reshape(slice.815)
+  multiply.887 = f64[64,64,64]{2,1,0} multiply(reshape.816, reshape.816)
+  slice.827 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[6:7], [0:64], [0:64], [0:64]}
+  reshape.828 = f64[64,64,64]{2,1,0} reshape(slice.827)
+  multiply.888 = f64[64,64,64]{2,1,0} multiply(reshape.828, reshape.828)
+  add.889 = f64[64,64,64]{2,1,0} add(multiply.887, multiply.888)
+  slice.839 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[7:8], [0:64], [0:64], [0:64]}
+  reshape.840 = f64[64,64,64]{2,1,0} reshape(slice.839)
+  multiply.890 = f64[64,64,64]{2,1,0} multiply(reshape.840, reshape.840)
+  add.891 = f64[64,64,64]{2,1,0} add(add.889, multiply.890)
+  multiply.892 = f64[64,64,64]{2,1,0} multiply(add.891, broadcast.426)
+  add.893 = f64[64,64,64]{2,1,0} add(reshape.768, multiply.892)
+  multiply.894 = f64[64,64,64]{2,1,0} multiply(reshape.816, reshape.816)
+  subtract.895 = f64[64,64,64]{2,1,0} subtract(add.893, multiply.894)
+  subtract.965 = f64[64,64,64]{2,1,0} subtract(subtract.904, subtract.895)
+  multiply.966 = f64[64,64,64]{2,1,0} multiply(subtract.965, broadcast.426)
+  slice.755 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[0:1], [0:64], [0:64], [0:64]}
+  reshape.756 = f64[64,64,64]{2,1,0} reshape(slice.755)
+  broadcast.913 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  multiply.914 = f64[64,64,64]{2,1,0} multiply(broadcast.913, reshape.768)
+  divide.915 = f64[64,64,64]{2,1,0} divide(multiply.914, reshape.756)
+  multiply.916 = f64[64,64,64]{2,1,0} multiply(reshape.816, reshape.816)
+  multiply.917 = f64[64,64,64]{2,1,0} multiply(reshape.828, reshape.828)
+  add.918 = f64[64,64,64]{2,1,0} add(multiply.916, multiply.917)
+  multiply.919 = f64[64,64,64]{2,1,0} multiply(reshape.840, reshape.840)
+  add.920 = f64[64,64,64]{2,1,0} add(add.918, multiply.919)
+  divide.921 = f64[64,64,64]{2,1,0} divide(add.920, reshape.756)
+  add.924 = f64[64,64,64]{2,1,0} add(divide.915, divide.921)
+  multiply.925 = f64[64,64,64]{2,1,0} multiply(add.924, broadcast.426)
+  add.926 = f64[64,64,64]{2,1,0} add(divide.915, divide.921)
+  add.927 = f64[64,64,64]{2,1,0} add(divide.915, divide.921)
+  multiply.928 = f64[64,64,64]{2,1,0} multiply(add.926, add.927)
+  multiply.929 = f64[64,64,64]{2,1,0} multiply(divide.915, broadcast.424)
+  multiply.922 = f64[64,64,64]{2,1,0} multiply(reshape.816, reshape.816)
+  divide.923 = f64[64,64,64]{2,1,0} divide(multiply.922, reshape.756)
+  multiply.930 = f64[64,64,64]{2,1,0} multiply(multiply.929, divide.923)
+  subtract.931 = f64[64,64,64]{2,1,0} subtract(multiply.928, multiply.930)
+  sqrt.932 = f64[64,64,64]{2,1,0} sqrt(subtract.931)
+  multiply.933 = f64[64,64,64]{2,1,0} multiply(sqrt.932, broadcast.426)
+  add.934 = f64[64,64,64]{2,1,0} add(multiply.925, multiply.933)
+  sqrt.935 = f64[64,64,64]{2,1,0} sqrt(add.934)
+  multiply.959 = f64[64,64,64]{2,1,0} multiply(reshape.756, sqrt.935)
+  slice.757 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[0:1], [0:64], [0:64], [0:64]}
+  reshape.758 = f64[64,64,64]{2,1,0} reshape(slice.757)
+  broadcast.936 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  multiply.937 = f64[64,64,64]{2,1,0} multiply(broadcast.936, reshape.770)
+  divide.938 = f64[64,64,64]{2,1,0} divide(multiply.937, reshape.758)
+  multiply.939 = f64[64,64,64]{2,1,0} multiply(reshape.818, reshape.818)
+  multiply.940 = f64[64,64,64]{2,1,0} multiply(reshape.830, reshape.830)
+  add.941 = f64[64,64,64]{2,1,0} add(multiply.939, multiply.940)
+  multiply.942 = f64[64,64,64]{2,1,0} multiply(reshape.842, reshape.842)
+  add.943 = f64[64,64,64]{2,1,0} add(add.941, multiply.942)
+  divide.944 = f64[64,64,64]{2,1,0} divide(add.943, reshape.758)
+  add.947 = f64[64,64,64]{2,1,0} add(divide.938, divide.944)
+  multiply.948 = f64[64,64,64]{2,1,0} multiply(add.947, broadcast.426)
+  add.949 = f64[64,64,64]{2,1,0} add(divide.938, divide.944)
+  add.950 = f64[64,64,64]{2,1,0} add(divide.938, divide.944)
+  multiply.951 = f64[64,64,64]{2,1,0} multiply(add.949, add.950)
+  multiply.952 = f64[64,64,64]{2,1,0} multiply(divide.938, broadcast.424)
+  multiply.945 = f64[64,64,64]{2,1,0} multiply(reshape.818, reshape.818)
+  divide.946 = f64[64,64,64]{2,1,0} divide(multiply.945, reshape.758)
+  multiply.953 = f64[64,64,64]{2,1,0} multiply(multiply.952, divide.946)
+  subtract.954 = f64[64,64,64]{2,1,0} subtract(multiply.951, multiply.953)
+  sqrt.955 = f64[64,64,64]{2,1,0} sqrt(subtract.954)
+  multiply.956 = f64[64,64,64]{2,1,0} multiply(sqrt.955, broadcast.426)
+  add.957 = f64[64,64,64]{2,1,0} add(multiply.948, multiply.956)
+  sqrt.958 = f64[64,64,64]{2,1,0} sqrt(add.957)
+  multiply.960 = f64[64,64,64]{2,1,0} multiply(reshape.758, sqrt.958)
+  maximum.961 = f64[64,64,64]{2,1,0} maximum(multiply.959, multiply.960)
+  constant.413 = f64[] constant(1.1)
+  broadcast.414 = f64[64,64,64]{2,1,0} broadcast(constant.413), dimensions={}
+  multiply.962 = f64[64,64,64]{2,1,0} multiply(maximum.961, broadcast.414)
+  divide.967 = f64[64,64,64]{2,1,0} divide(multiply.966, multiply.962)
+  subtract.968 = f64[64,64,64]{2,1,0} subtract(multiply.964, divide.967)
+  constant.411 = f64[] constant(0)
+  broadcast.412 = f64[64,64,64]{2,1,0} broadcast(constant.411), dimensions={}
+  compare.999 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  multiply.1000 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.756)
+  multiply.1001 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.758)
+  call.1002 = f64[64,64,64]{2,1,0} call(compare.999, multiply.1000, multiply.1001), to_apply=_where_2.157
+  multiply.1503 = f64[64,64,64]{2,1,0} multiply(broadcast.1502, call.1002)
+  add.1504 = f64[64,64,64]{2,1,0} add(get-tuple-element.433, multiply.1503)
+  negate.1505 = f64[] negate(divide.1499)
+  broadcast.1507 = f64[64,64,64]{2,1,0} broadcast(negate.1505), dimensions={}
+  call.1506 = f64[64,64,64]{2,1,0} call(call.1002), to_apply=_roll_static_3.277
+  multiply.1508 = f64[64,64,64]{2,1,0} multiply(broadcast.1507, call.1506)
+  add.1509 = f64[64,64,64]{2,1,0} add(add.1504, multiply.1508)
+  divide.1500 = f64[] divide(divide.513, Arg_6.404)
+  broadcast.1510 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  broadcast.741 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_6.404), dimensions={}
+  multiply.742 = f64[8,64,64,64]{3,2,1,0} multiply(multiply.553, broadcast.741)
+  divide.743 = f64[8,64,64,64]{3,2,1,0} divide(multiply.742, broadcast.416)
+  subtract.744 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.727, divide.743)
+  call.745 = f64[8,64,64,64]{3,2,1,0} call(subtract.744), to_apply=_roll_static_0.147
+  slice.795 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[3:4], [0:64], [0:64], [0:64]}
+  reshape.796 = f64[64,64,64]{2,1,0} reshape(slice.795)
+  broadcast.737 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_6.404), dimensions={}
+  multiply.738 = f64[8,64,64,64]{3,2,1,0} multiply(multiply.553, broadcast.737)
+  divide.739 = f64[8,64,64,64]{3,2,1,0} divide(multiply.738, broadcast.416)
+  add.740 = f64[8,64,64,64]{3,2,1,0} add(concatenate.727, divide.739)
+  slice.797 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[3:4], [0:64], [0:64], [0:64]}
+  reshape.798 = f64[64,64,64]{2,1,0} reshape(slice.797)
+  add.1179 = f64[64,64,64]{2,1,0} add(reshape.796, reshape.798)
+  multiply.1180 = f64[64,64,64]{2,1,0} multiply(add.1179, broadcast.426)
+  slice.773 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[1:2], [0:64], [0:64], [0:64]}
+  reshape.774 = f64[64,64,64]{2,1,0} reshape(slice.773)
+  slice.833 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[6:7], [0:64], [0:64], [0:64]}
+  reshape.834 = f64[64,64,64]{2,1,0} reshape(slice.833)
+  multiply.1112 = f64[64,64,64]{2,1,0} multiply(reshape.834, reshape.834)
+  slice.821 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[5:6], [0:64], [0:64], [0:64]}
+  reshape.822 = f64[64,64,64]{2,1,0} reshape(slice.821)
+  multiply.1113 = f64[64,64,64]{2,1,0} multiply(reshape.822, reshape.822)
+  add.1114 = f64[64,64,64]{2,1,0} add(multiply.1112, multiply.1113)
+  slice.845 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[7:8], [0:64], [0:64], [0:64]}
+  reshape.846 = f64[64,64,64]{2,1,0} reshape(slice.845)
+  multiply.1115 = f64[64,64,64]{2,1,0} multiply(reshape.846, reshape.846)
+  add.1116 = f64[64,64,64]{2,1,0} add(add.1114, multiply.1115)
+  multiply.1117 = f64[64,64,64]{2,1,0} multiply(add.1116, broadcast.426)
+  add.1118 = f64[64,64,64]{2,1,0} add(reshape.774, multiply.1117)
+  multiply.1119 = f64[64,64,64]{2,1,0} multiply(reshape.834, reshape.834)
+  subtract.1120 = f64[64,64,64]{2,1,0} subtract(add.1118, multiply.1119)
+  slice.771 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[1:2], [0:64], [0:64], [0:64]}
+  reshape.772 = f64[64,64,64]{2,1,0} reshape(slice.771)
+  slice.831 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[6:7], [0:64], [0:64], [0:64]}
+  reshape.832 = f64[64,64,64]{2,1,0} reshape(slice.831)
+  multiply.1103 = f64[64,64,64]{2,1,0} multiply(reshape.832, reshape.832)
+  slice.819 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[5:6], [0:64], [0:64], [0:64]}
+  reshape.820 = f64[64,64,64]{2,1,0} reshape(slice.819)
+  multiply.1104 = f64[64,64,64]{2,1,0} multiply(reshape.820, reshape.820)
+  add.1105 = f64[64,64,64]{2,1,0} add(multiply.1103, multiply.1104)
+  slice.843 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[7:8], [0:64], [0:64], [0:64]}
+  reshape.844 = f64[64,64,64]{2,1,0} reshape(slice.843)
+  multiply.1106 = f64[64,64,64]{2,1,0} multiply(reshape.844, reshape.844)
+  add.1107 = f64[64,64,64]{2,1,0} add(add.1105, multiply.1106)
+  multiply.1108 = f64[64,64,64]{2,1,0} multiply(add.1107, broadcast.426)
+  add.1109 = f64[64,64,64]{2,1,0} add(reshape.772, multiply.1108)
+  multiply.1110 = f64[64,64,64]{2,1,0} multiply(reshape.832, reshape.832)
+  subtract.1111 = f64[64,64,64]{2,1,0} subtract(add.1109, multiply.1110)
+  subtract.1181 = f64[64,64,64]{2,1,0} subtract(subtract.1120, subtract.1111)
+  multiply.1182 = f64[64,64,64]{2,1,0} multiply(subtract.1181, broadcast.426)
+  slice.759 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[0:1], [0:64], [0:64], [0:64]}
+  reshape.760 = f64[64,64,64]{2,1,0} reshape(slice.759)
+  broadcast.1129 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  multiply.1130 = f64[64,64,64]{2,1,0} multiply(broadcast.1129, reshape.772)
+  divide.1131 = f64[64,64,64]{2,1,0} divide(multiply.1130, reshape.760)
+  multiply.1132 = f64[64,64,64]{2,1,0} multiply(reshape.832, reshape.832)
+  multiply.1133 = f64[64,64,64]{2,1,0} multiply(reshape.820, reshape.820)
+  add.1134 = f64[64,64,64]{2,1,0} add(multiply.1132, multiply.1133)
+  multiply.1135 = f64[64,64,64]{2,1,0} multiply(reshape.844, reshape.844)
+  add.1136 = f64[64,64,64]{2,1,0} add(add.1134, multiply.1135)
+  divide.1137 = f64[64,64,64]{2,1,0} divide(add.1136, reshape.760)
+  add.1140 = f64[64,64,64]{2,1,0} add(divide.1131, divide.1137)
+  multiply.1141 = f64[64,64,64]{2,1,0} multiply(add.1140, broadcast.426)
+  add.1142 = f64[64,64,64]{2,1,0} add(divide.1131, divide.1137)
+  add.1143 = f64[64,64,64]{2,1,0} add(divide.1131, divide.1137)
+  multiply.1144 = f64[64,64,64]{2,1,0} multiply(add.1142, add.1143)
+  multiply.1145 = f64[64,64,64]{2,1,0} multiply(divide.1131, broadcast.424)
+  multiply.1138 = f64[64,64,64]{2,1,0} multiply(reshape.832, reshape.832)
+  divide.1139 = f64[64,64,64]{2,1,0} divide(multiply.1138, reshape.760)
+  multiply.1146 = f64[64,64,64]{2,1,0} multiply(multiply.1145, divide.1139)
+  subtract.1147 = f64[64,64,64]{2,1,0} subtract(multiply.1144, multiply.1146)
+  sqrt.1148 = f64[64,64,64]{2,1,0} sqrt(subtract.1147)
+  multiply.1149 = f64[64,64,64]{2,1,0} multiply(sqrt.1148, broadcast.426)
+  add.1150 = f64[64,64,64]{2,1,0} add(multiply.1141, multiply.1149)
+  sqrt.1151 = f64[64,64,64]{2,1,0} sqrt(add.1150)
+  multiply.1175 = f64[64,64,64]{2,1,0} multiply(reshape.760, sqrt.1151)
+  slice.761 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[0:1], [0:64], [0:64], [0:64]}
+  reshape.762 = f64[64,64,64]{2,1,0} reshape(slice.761)
+  broadcast.1152 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  multiply.1153 = f64[64,64,64]{2,1,0} multiply(broadcast.1152, reshape.774)
+  divide.1154 = f64[64,64,64]{2,1,0} divide(multiply.1153, reshape.762)
+  multiply.1155 = f64[64,64,64]{2,1,0} multiply(reshape.834, reshape.834)
+  multiply.1156 = f64[64,64,64]{2,1,0} multiply(reshape.822, reshape.822)
+  add.1157 = f64[64,64,64]{2,1,0} add(multiply.1155, multiply.1156)
+  multiply.1158 = f64[64,64,64]{2,1,0} multiply(reshape.846, reshape.846)
+  add.1159 = f64[64,64,64]{2,1,0} add(add.1157, multiply.1158)
+  divide.1160 = f64[64,64,64]{2,1,0} divide(add.1159, reshape.762)
+  add.1163 = f64[64,64,64]{2,1,0} add(divide.1154, divide.1160)
+  multiply.1164 = f64[64,64,64]{2,1,0} multiply(add.1163, broadcast.426)
+  add.1165 = f64[64,64,64]{2,1,0} add(divide.1154, divide.1160)
+  add.1166 = f64[64,64,64]{2,1,0} add(divide.1154, divide.1160)
+  multiply.1167 = f64[64,64,64]{2,1,0} multiply(add.1165, add.1166)
+  multiply.1168 = f64[64,64,64]{2,1,0} multiply(divide.1154, broadcast.424)
+  multiply.1161 = f64[64,64,64]{2,1,0} multiply(reshape.834, reshape.834)
+  divide.1162 = f64[64,64,64]{2,1,0} divide(multiply.1161, reshape.762)
+  multiply.1169 = f64[64,64,64]{2,1,0} multiply(multiply.1168, divide.1162)
+  subtract.1170 = f64[64,64,64]{2,1,0} subtract(multiply.1167, multiply.1169)
+  sqrt.1171 = f64[64,64,64]{2,1,0} sqrt(subtract.1170)
+  multiply.1172 = f64[64,64,64]{2,1,0} multiply(sqrt.1171, broadcast.426)
+  add.1173 = f64[64,64,64]{2,1,0} add(multiply.1164, multiply.1172)
+  sqrt.1174 = f64[64,64,64]{2,1,0} sqrt(add.1173)
+  multiply.1176 = f64[64,64,64]{2,1,0} multiply(reshape.762, sqrt.1174)
+  maximum.1177 = f64[64,64,64]{2,1,0} maximum(multiply.1175, multiply.1176)
+  multiply.1178 = f64[64,64,64]{2,1,0} multiply(maximum.1177, broadcast.414)
+  divide.1183 = f64[64,64,64]{2,1,0} divide(multiply.1182, multiply.1178)
+  subtract.1184 = f64[64,64,64]{2,1,0} subtract(multiply.1180, divide.1183)
+  compare.1215 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  multiply.1216 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.760)
+  multiply.1217 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.762)
+  call.1218 = f64[64,64,64]{2,1,0} call(compare.1215, multiply.1216, multiply.1217), to_apply=_where_2.197
+  multiply.1511 = f64[64,64,64]{2,1,0} multiply(broadcast.1510, call.1218)
+  add.1512 = f64[64,64,64]{2,1,0} add(add.1509, multiply.1511)
+  negate.1513 = f64[] negate(divide.1500)
+  broadcast.1515 = f64[64,64,64]{2,1,0} broadcast(negate.1513), dimensions={}
+  call.1514 = f64[64,64,64]{2,1,0} call(call.1218), to_apply=_roll_static_4.282
+  multiply.1516 = f64[64,64,64]{2,1,0} multiply(broadcast.1515, call.1514)
+  add.1517 = f64[64,64,64]{2,1,0} add(add.1512, multiply.1516)
+  divide.1501 = f64[] divide(divide.513, Arg_7.405)
+  broadcast.1518 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  broadcast.750 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_7.405), dimensions={}
+  multiply.751 = f64[8,64,64,64]{3,2,1,0} multiply(multiply.573, broadcast.750)
+  divide.752 = f64[8,64,64,64]{3,2,1,0} divide(multiply.751, broadcast.416)
+  subtract.753 = f64[8,64,64,64]{3,2,1,0} subtract(concatenate.727, divide.752)
+  call.754 = f64[8,64,64,64]{3,2,1,0} call(subtract.753), to_apply=_roll_static_1.152
+  slice.811 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[4:5], [0:64], [0:64], [0:64]}
+  reshape.812 = f64[64,64,64]{2,1,0} reshape(slice.811)
+  broadcast.746 = f64[8,64,64,64]{3,2,1,0} broadcast(Arg_7.405), dimensions={}
+  multiply.747 = f64[8,64,64,64]{3,2,1,0} multiply(multiply.573, broadcast.746)
+  divide.748 = f64[8,64,64,64]{3,2,1,0} divide(multiply.747, broadcast.416)
+  add.749 = f64[8,64,64,64]{3,2,1,0} add(concatenate.727, divide.748)
+  slice.813 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[4:5], [0:64], [0:64], [0:64]}
+  reshape.814 = f64[64,64,64]{2,1,0} reshape(slice.813)
+  add.1395 = f64[64,64,64]{2,1,0} add(reshape.812, reshape.814)
+  multiply.1396 = f64[64,64,64]{2,1,0} multiply(add.1395, broadcast.426)
+  slice.777 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[1:2], [0:64], [0:64], [0:64]}
+  reshape.778 = f64[64,64,64]{2,1,0} reshape(slice.777)
+  slice.849 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[7:8], [0:64], [0:64], [0:64]}
+  reshape.850 = f64[64,64,64]{2,1,0} reshape(slice.849)
+  multiply.1328 = f64[64,64,64]{2,1,0} multiply(reshape.850, reshape.850)
+  slice.837 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[6:7], [0:64], [0:64], [0:64]}
+  reshape.838 = f64[64,64,64]{2,1,0} reshape(slice.837)
+  multiply.1329 = f64[64,64,64]{2,1,0} multiply(reshape.838, reshape.838)
+  add.1330 = f64[64,64,64]{2,1,0} add(multiply.1328, multiply.1329)
+  slice.825 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[5:6], [0:64], [0:64], [0:64]}
+  reshape.826 = f64[64,64,64]{2,1,0} reshape(slice.825)
+  multiply.1331 = f64[64,64,64]{2,1,0} multiply(reshape.826, reshape.826)
+  add.1332 = f64[64,64,64]{2,1,0} add(add.1330, multiply.1331)
+  multiply.1333 = f64[64,64,64]{2,1,0} multiply(add.1332, broadcast.426)
+  add.1334 = f64[64,64,64]{2,1,0} add(reshape.778, multiply.1333)
+  multiply.1335 = f64[64,64,64]{2,1,0} multiply(reshape.850, reshape.850)
+  subtract.1336 = f64[64,64,64]{2,1,0} subtract(add.1334, multiply.1335)
+  slice.775 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[1:2], [0:64], [0:64], [0:64]}
+  reshape.776 = f64[64,64,64]{2,1,0} reshape(slice.775)
+  slice.847 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[7:8], [0:64], [0:64], [0:64]}
+  reshape.848 = f64[64,64,64]{2,1,0} reshape(slice.847)
+  multiply.1319 = f64[64,64,64]{2,1,0} multiply(reshape.848, reshape.848)
+  slice.835 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[6:7], [0:64], [0:64], [0:64]}
+  reshape.836 = f64[64,64,64]{2,1,0} reshape(slice.835)
+  multiply.1320 = f64[64,64,64]{2,1,0} multiply(reshape.836, reshape.836)
+  add.1321 = f64[64,64,64]{2,1,0} add(multiply.1319, multiply.1320)
+  slice.823 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[5:6], [0:64], [0:64], [0:64]}
+  reshape.824 = f64[64,64,64]{2,1,0} reshape(slice.823)
+  multiply.1322 = f64[64,64,64]{2,1,0} multiply(reshape.824, reshape.824)
+  add.1323 = f64[64,64,64]{2,1,0} add(add.1321, multiply.1322)
+  multiply.1324 = f64[64,64,64]{2,1,0} multiply(add.1323, broadcast.426)
+  add.1325 = f64[64,64,64]{2,1,0} add(reshape.776, multiply.1324)
+  multiply.1326 = f64[64,64,64]{2,1,0} multiply(reshape.848, reshape.848)
+  subtract.1327 = f64[64,64,64]{2,1,0} subtract(add.1325, multiply.1326)
+  subtract.1397 = f64[64,64,64]{2,1,0} subtract(subtract.1336, subtract.1327)
+  multiply.1398 = f64[64,64,64]{2,1,0} multiply(subtract.1397, broadcast.426)
+  slice.763 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[0:1], [0:64], [0:64], [0:64]}
+  reshape.764 = f64[64,64,64]{2,1,0} reshape(slice.763)
+  broadcast.1345 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  multiply.1346 = f64[64,64,64]{2,1,0} multiply(broadcast.1345, reshape.776)
+  divide.1347 = f64[64,64,64]{2,1,0} divide(multiply.1346, reshape.764)
+  multiply.1348 = f64[64,64,64]{2,1,0} multiply(reshape.848, reshape.848)
+  multiply.1349 = f64[64,64,64]{2,1,0} multiply(reshape.836, reshape.836)
+  add.1350 = f64[64,64,64]{2,1,0} add(multiply.1348, multiply.1349)
+  multiply.1351 = f64[64,64,64]{2,1,0} multiply(reshape.824, reshape.824)
+  add.1352 = f64[64,64,64]{2,1,0} add(add.1350, multiply.1351)
+  divide.1353 = f64[64,64,64]{2,1,0} divide(add.1352, reshape.764)
+  add.1356 = f64[64,64,64]{2,1,0} add(divide.1347, divide.1353)
+  multiply.1357 = f64[64,64,64]{2,1,0} multiply(add.1356, broadcast.426)
+  add.1358 = f64[64,64,64]{2,1,0} add(divide.1347, divide.1353)
+  add.1359 = f64[64,64,64]{2,1,0} add(divide.1347, divide.1353)
+  multiply.1360 = f64[64,64,64]{2,1,0} multiply(add.1358, add.1359)
+  multiply.1361 = f64[64,64,64]{2,1,0} multiply(divide.1347, broadcast.424)
+  multiply.1354 = f64[64,64,64]{2,1,0} multiply(reshape.848, reshape.848)
+  divide.1355 = f64[64,64,64]{2,1,0} divide(multiply.1354, reshape.764)
+  multiply.1362 = f64[64,64,64]{2,1,0} multiply(multiply.1361, divide.1355)
+  subtract.1363 = f64[64,64,64]{2,1,0} subtract(multiply.1360, multiply.1362)
+  sqrt.1364 = f64[64,64,64]{2,1,0} sqrt(subtract.1363)
+  multiply.1365 = f64[64,64,64]{2,1,0} multiply(sqrt.1364, broadcast.426)
+  add.1366 = f64[64,64,64]{2,1,0} add(multiply.1357, multiply.1365)
+  sqrt.1367 = f64[64,64,64]{2,1,0} sqrt(add.1366)
+  multiply.1391 = f64[64,64,64]{2,1,0} multiply(reshape.764, sqrt.1367)
+  slice.765 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[0:1], [0:64], [0:64], [0:64]}
+  reshape.766 = f64[64,64,64]{2,1,0} reshape(slice.765)
+  broadcast.1368 = f64[64,64,64]{2,1,0} broadcast(Arg_8.406), dimensions={}
+  multiply.1369 = f64[64,64,64]{2,1,0} multiply(broadcast.1368, reshape.778)
+  divide.1370 = f64[64,64,64]{2,1,0} divide(multiply.1369, reshape.766)
+  multiply.1371 = f64[64,64,64]{2,1,0} multiply(reshape.850, reshape.850)
+  multiply.1372 = f64[64,64,64]{2,1,0} multiply(reshape.838, reshape.838)
+  add.1373 = f64[64,64,64]{2,1,0} add(multiply.1371, multiply.1372)
+  multiply.1374 = f64[64,64,64]{2,1,0} multiply(reshape.826, reshape.826)
+  add.1375 = f64[64,64,64]{2,1,0} add(add.1373, multiply.1374)
+  divide.1376 = f64[64,64,64]{2,1,0} divide(add.1375, reshape.766)
+  add.1379 = f64[64,64,64]{2,1,0} add(divide.1370, divide.1376)
+  multiply.1380 = f64[64,64,64]{2,1,0} multiply(add.1379, broadcast.426)
+  add.1381 = f64[64,64,64]{2,1,0} add(divide.1370, divide.1376)
+  add.1382 = f64[64,64,64]{2,1,0} add(divide.1370, divide.1376)
+  multiply.1383 = f64[64,64,64]{2,1,0} multiply(add.1381, add.1382)
+  multiply.1384 = f64[64,64,64]{2,1,0} multiply(divide.1370, broadcast.424)
+  multiply.1377 = f64[64,64,64]{2,1,0} multiply(reshape.850, reshape.850)
+  divide.1378 = f64[64,64,64]{2,1,0} divide(multiply.1377, reshape.766)
+  multiply.1385 = f64[64,64,64]{2,1,0} multiply(multiply.1384, divide.1378)
+  subtract.1386 = f64[64,64,64]{2,1,0} subtract(multiply.1383, multiply.1385)
+  sqrt.1387 = f64[64,64,64]{2,1,0} sqrt(subtract.1386)
+  multiply.1388 = f64[64,64,64]{2,1,0} multiply(sqrt.1387, broadcast.426)
+  add.1389 = f64[64,64,64]{2,1,0} add(multiply.1380, multiply.1388)
+  sqrt.1390 = f64[64,64,64]{2,1,0} sqrt(add.1389)
+  multiply.1392 = f64[64,64,64]{2,1,0} multiply(reshape.766, sqrt.1390)
+  maximum.1393 = f64[64,64,64]{2,1,0} maximum(multiply.1391, multiply.1392)
+  multiply.1394 = f64[64,64,64]{2,1,0} multiply(maximum.1393, broadcast.414)
+  divide.1399 = f64[64,64,64]{2,1,0} divide(multiply.1398, multiply.1394)
+  subtract.1400 = f64[64,64,64]{2,1,0} subtract(multiply.1396, divide.1399)
+  compare.1431 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  multiply.1432 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.764)
+  multiply.1433 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.766)
+  call.1434 = f64[64,64,64]{2,1,0} call(compare.1431, multiply.1432, multiply.1433), to_apply=_where_2.237
+  multiply.1519 = f64[64,64,64]{2,1,0} multiply(broadcast.1518, call.1434)
+  add.1520 = f64[64,64,64]{2,1,0} add(add.1517, multiply.1519)
+  negate.1521 = f64[] negate(divide.1501)
+  broadcast.1523 = f64[64,64,64]{2,1,0} broadcast(negate.1521), dimensions={}
+  call.1522 = f64[64,64,64]{2,1,0} call(call.1434), to_apply=_roll_static_5.287
+  multiply.1524 = f64[64,64,64]{2,1,0} multiply(broadcast.1523, call.1522)
+  add.1525 = f64[64,64,64]{2,1,0} add(add.1520, multiply.1524)
+  broadcast.1526 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  compare.1003 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  multiply.1004 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.780)
+  multiply.1005 = f64[64,64,64]{2,1,0} multiply(multiply.1004, reshape.756)
+  add.969 = f64[64,64,64]{2,1,0} add(subtract.895, subtract.904)
+  multiply.970 = f64[64,64,64]{2,1,0} multiply(add.969, broadcast.426)
+  subtract.971 = f64[64,64,64]{2,1,0} subtract(reshape.782, reshape.780)
+  multiply.972 = f64[64,64,64]{2,1,0} multiply(subtract.971, broadcast.426)
+  multiply.973 = f64[64,64,64]{2,1,0} multiply(multiply.972, multiply.962)
+  subtract.974 = f64[64,64,64]{2,1,0} subtract(multiply.970, multiply.973)
+  add.1006 = f64[64,64,64]{2,1,0} add(multiply.1005, subtract.974)
+  multiply.1007 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.782)
+  multiply.1008 = f64[64,64,64]{2,1,0} multiply(multiply.1007, reshape.758)
+  add.1009 = f64[64,64,64]{2,1,0} add(multiply.1008, subtract.974)
+  call.1010 = f64[64,64,64]{2,1,0} call(compare.1003, add.1006, add.1009), to_apply=_where_2.162
+  multiply.1527 = f64[64,64,64]{2,1,0} multiply(broadcast.1526, call.1010)
+  add.1528 = f64[64,64,64]{2,1,0} add(Arg_1.399, multiply.1527)
+  negate.1529 = f64[] negate(divide.1499)
+  broadcast.1531 = f64[64,64,64]{2,1,0} broadcast(negate.1529), dimensions={}
+  call.1530 = f64[64,64,64]{2,1,0} call(call.1010), to_apply=_roll_static_3.292
+  multiply.1532 = f64[64,64,64]{2,1,0} multiply(broadcast.1531, call.1530)
+  add.1533 = f64[64,64,64]{2,1,0} add(add.1528, multiply.1532)
+  broadcast.1534 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  compare.1227 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  slice.783 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[2:3], [0:64], [0:64], [0:64]}
+  reshape.784 = f64[64,64,64]{2,1,0} reshape(slice.783)
+  multiply.1228 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.784)
+  multiply.1229 = f64[64,64,64]{2,1,0} multiply(multiply.1228, reshape.760)
+  negate.1121 = f64[64,64,64]{2,1,0} negate(reshape.832)
+  multiply.1122 = f64[64,64,64]{2,1,0} multiply(negate.1121, reshape.820)
+  negate.1123 = f64[64,64,64]{2,1,0} negate(reshape.834)
+  multiply.1124 = f64[64,64,64]{2,1,0} multiply(negate.1123, reshape.822)
+  add.1197 = f64[64,64,64]{2,1,0} add(multiply.1122, multiply.1124)
+  multiply.1198 = f64[64,64,64]{2,1,0} multiply(add.1197, broadcast.426)
+  slice.785 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[2:3], [0:64], [0:64], [0:64]}
+  reshape.786 = f64[64,64,64]{2,1,0} reshape(slice.785)
+  subtract.1199 = f64[64,64,64]{2,1,0} subtract(reshape.786, reshape.784)
+  multiply.1200 = f64[64,64,64]{2,1,0} multiply(subtract.1199, broadcast.426)
+  multiply.1201 = f64[64,64,64]{2,1,0} multiply(multiply.1200, multiply.1178)
+  subtract.1202 = f64[64,64,64]{2,1,0} subtract(multiply.1198, multiply.1201)
+  add.1230 = f64[64,64,64]{2,1,0} add(multiply.1229, subtract.1202)
+  multiply.1231 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.786)
+  multiply.1232 = f64[64,64,64]{2,1,0} multiply(multiply.1231, reshape.762)
+  add.1233 = f64[64,64,64]{2,1,0} add(multiply.1232, subtract.1202)
+  call.1234 = f64[64,64,64]{2,1,0} call(compare.1227, add.1230, add.1233), to_apply=_where_2.207
+  multiply.1535 = f64[64,64,64]{2,1,0} multiply(broadcast.1534, call.1234)
+  add.1536 = f64[64,64,64]{2,1,0} add(add.1533, multiply.1535)
+  negate.1537 = f64[] negate(divide.1500)
+  broadcast.1539 = f64[64,64,64]{2,1,0} broadcast(negate.1537), dimensions={}
+  call.1538 = f64[64,64,64]{2,1,0} call(call.1234), to_apply=_roll_static_4.297
+  multiply.1540 = f64[64,64,64]{2,1,0} multiply(broadcast.1539, call.1538)
+  add.1541 = f64[64,64,64]{2,1,0} add(add.1536, multiply.1540)
+  broadcast.1542 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  compare.1451 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  slice.787 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[2:3], [0:64], [0:64], [0:64]}
+  reshape.788 = f64[64,64,64]{2,1,0} reshape(slice.787)
+  multiply.1452 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.788)
+  multiply.1453 = f64[64,64,64]{2,1,0} multiply(multiply.1452, reshape.764)
+  negate.1341 = f64[64,64,64]{2,1,0} negate(reshape.848)
+  multiply.1342 = f64[64,64,64]{2,1,0} multiply(negate.1341, reshape.824)
+  negate.1343 = f64[64,64,64]{2,1,0} negate(reshape.850)
+  multiply.1344 = f64[64,64,64]{2,1,0} multiply(negate.1343, reshape.826)
+  add.1425 = f64[64,64,64]{2,1,0} add(multiply.1342, multiply.1344)
+  multiply.1426 = f64[64,64,64]{2,1,0} multiply(add.1425, broadcast.426)
+  slice.789 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[2:3], [0:64], [0:64], [0:64]}
+  reshape.790 = f64[64,64,64]{2,1,0} reshape(slice.789)
+  subtract.1427 = f64[64,64,64]{2,1,0} subtract(reshape.790, reshape.788)
+  multiply.1428 = f64[64,64,64]{2,1,0} multiply(subtract.1427, broadcast.426)
+  multiply.1429 = f64[64,64,64]{2,1,0} multiply(multiply.1428, multiply.1394)
+  subtract.1430 = f64[64,64,64]{2,1,0} subtract(multiply.1426, multiply.1429)
+  add.1454 = f64[64,64,64]{2,1,0} add(multiply.1453, subtract.1430)
+  multiply.1455 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.790)
+  multiply.1456 = f64[64,64,64]{2,1,0} multiply(multiply.1455, reshape.766)
+  add.1457 = f64[64,64,64]{2,1,0} add(multiply.1456, subtract.1430)
+  call.1458 = f64[64,64,64]{2,1,0} call(compare.1451, add.1454, add.1457), to_apply=_where_2.252
+  multiply.1543 = f64[64,64,64]{2,1,0} multiply(broadcast.1542, call.1458)
+  add.1544 = f64[64,64,64]{2,1,0} add(add.1541, multiply.1543)
+  negate.1545 = f64[] negate(divide.1501)
+  broadcast.1547 = f64[64,64,64]{2,1,0} broadcast(negate.1545), dimensions={}
+  call.1546 = f64[64,64,64]{2,1,0} call(call.1458), to_apply=_roll_static_5.302
+  multiply.1548 = f64[64,64,64]{2,1,0} multiply(broadcast.1547, call.1546)
+  add.1549 = f64[64,64,64]{2,1,0} add(add.1544, multiply.1548)
+  broadcast.1550 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  compare.1011 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  slice.791 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[3:4], [0:64], [0:64], [0:64]}
+  reshape.792 = f64[64,64,64]{2,1,0} reshape(slice.791)
+  multiply.1012 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.792)
+  multiply.1013 = f64[64,64,64]{2,1,0} multiply(multiply.1012, reshape.756)
+  negate.905 = f64[64,64,64]{2,1,0} negate(reshape.816)
+  multiply.906 = f64[64,64,64]{2,1,0} multiply(negate.905, reshape.828)
+  negate.907 = f64[64,64,64]{2,1,0} negate(reshape.818)
+  multiply.908 = f64[64,64,64]{2,1,0} multiply(negate.907, reshape.830)
+  add.981 = f64[64,64,64]{2,1,0} add(multiply.906, multiply.908)
+  multiply.982 = f64[64,64,64]{2,1,0} multiply(add.981, broadcast.426)
+  slice.793 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[3:4], [0:64], [0:64], [0:64]}
+  reshape.794 = f64[64,64,64]{2,1,0} reshape(slice.793)
+  subtract.983 = f64[64,64,64]{2,1,0} subtract(reshape.794, reshape.792)
+  multiply.984 = f64[64,64,64]{2,1,0} multiply(subtract.983, broadcast.426)
+  multiply.985 = f64[64,64,64]{2,1,0} multiply(multiply.984, multiply.962)
+  subtract.986 = f64[64,64,64]{2,1,0} subtract(multiply.982, multiply.985)
+  add.1014 = f64[64,64,64]{2,1,0} add(multiply.1013, subtract.986)
+  multiply.1015 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.794)
+  multiply.1016 = f64[64,64,64]{2,1,0} multiply(multiply.1015, reshape.758)
+  add.1017 = f64[64,64,64]{2,1,0} add(multiply.1016, subtract.986)
+  call.1018 = f64[64,64,64]{2,1,0} call(compare.1011, add.1014, add.1017), to_apply=_where_2.167
+  multiply.1551 = f64[64,64,64]{2,1,0} multiply(broadcast.1550, call.1018)
+  add.1552 = f64[64,64,64]{2,1,0} add(Arg_2.400, multiply.1551)
+  negate.1553 = f64[] negate(divide.1499)
+  broadcast.1555 = f64[64,64,64]{2,1,0} broadcast(negate.1553), dimensions={}
+  call.1554 = f64[64,64,64]{2,1,0} call(call.1018), to_apply=_roll_static_3.307
+  multiply.1556 = f64[64,64,64]{2,1,0} multiply(broadcast.1555, call.1554)
+  add.1557 = f64[64,64,64]{2,1,0} add(add.1552, multiply.1556)
+  broadcast.1558 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  compare.1219 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  multiply.1220 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.796)
+  multiply.1221 = f64[64,64,64]{2,1,0} multiply(multiply.1220, reshape.760)
+  add.1185 = f64[64,64,64]{2,1,0} add(subtract.1111, subtract.1120)
+  multiply.1186 = f64[64,64,64]{2,1,0} multiply(add.1185, broadcast.426)
+  subtract.1187 = f64[64,64,64]{2,1,0} subtract(reshape.798, reshape.796)
+  multiply.1188 = f64[64,64,64]{2,1,0} multiply(subtract.1187, broadcast.426)
+  multiply.1189 = f64[64,64,64]{2,1,0} multiply(multiply.1188, multiply.1178)
+  subtract.1190 = f64[64,64,64]{2,1,0} subtract(multiply.1186, multiply.1189)
+  add.1222 = f64[64,64,64]{2,1,0} add(multiply.1221, subtract.1190)
+  multiply.1223 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.798)
+  multiply.1224 = f64[64,64,64]{2,1,0} multiply(multiply.1223, reshape.762)
+  add.1225 = f64[64,64,64]{2,1,0} add(multiply.1224, subtract.1190)
+  call.1226 = f64[64,64,64]{2,1,0} call(compare.1219, add.1222, add.1225), to_apply=_where_2.202
+  multiply.1559 = f64[64,64,64]{2,1,0} multiply(broadcast.1558, call.1226)
+  add.1560 = f64[64,64,64]{2,1,0} add(add.1557, multiply.1559)
+  negate.1561 = f64[] negate(divide.1500)
+  broadcast.1563 = f64[64,64,64]{2,1,0} broadcast(negate.1561), dimensions={}
+  call.1562 = f64[64,64,64]{2,1,0} call(call.1226), to_apply=_roll_static_4.312
+  multiply.1564 = f64[64,64,64]{2,1,0} multiply(broadcast.1563, call.1562)
+  add.1565 = f64[64,64,64]{2,1,0} add(add.1560, multiply.1564)
+  broadcast.1566 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  compare.1443 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  slice.799 = f64[1,64,64,64]{3,2,1,0} slice(call.754), slice={[3:4], [0:64], [0:64], [0:64]}
+  reshape.800 = f64[64,64,64]{2,1,0} reshape(slice.799)
+  multiply.1444 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.800)
+  multiply.1445 = f64[64,64,64]{2,1,0} multiply(multiply.1444, reshape.764)
+  negate.1337 = f64[64,64,64]{2,1,0} negate(reshape.848)
+  multiply.1338 = f64[64,64,64]{2,1,0} multiply(negate.1337, reshape.836)
+  negate.1339 = f64[64,64,64]{2,1,0} negate(reshape.850)
+  multiply.1340 = f64[64,64,64]{2,1,0} multiply(negate.1339, reshape.838)
+  add.1413 = f64[64,64,64]{2,1,0} add(multiply.1338, multiply.1340)
+  multiply.1414 = f64[64,64,64]{2,1,0} multiply(add.1413, broadcast.426)
+  slice.801 = f64[1,64,64,64]{3,2,1,0} slice(add.749), slice={[3:4], [0:64], [0:64], [0:64]}
+  reshape.802 = f64[64,64,64]{2,1,0} reshape(slice.801)
+  subtract.1415 = f64[64,64,64]{2,1,0} subtract(reshape.802, reshape.800)
+  multiply.1416 = f64[64,64,64]{2,1,0} multiply(subtract.1415, broadcast.426)
+  multiply.1417 = f64[64,64,64]{2,1,0} multiply(multiply.1416, multiply.1394)
+  subtract.1418 = f64[64,64,64]{2,1,0} subtract(multiply.1414, multiply.1417)
+  add.1446 = f64[64,64,64]{2,1,0} add(multiply.1445, subtract.1418)
+  multiply.1447 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.802)
+  multiply.1448 = f64[64,64,64]{2,1,0} multiply(multiply.1447, reshape.766)
+  add.1449 = f64[64,64,64]{2,1,0} add(multiply.1448, subtract.1418)
+  call.1450 = f64[64,64,64]{2,1,0} call(compare.1443, add.1446, add.1449), to_apply=_where_2.247
+  multiply.1567 = f64[64,64,64]{2,1,0} multiply(broadcast.1566, call.1450)
+  add.1568 = f64[64,64,64]{2,1,0} add(add.1565, multiply.1567)
+  negate.1569 = f64[] negate(divide.1501)
+  broadcast.1571 = f64[64,64,64]{2,1,0} broadcast(negate.1569), dimensions={}
+  call.1570 = f64[64,64,64]{2,1,0} call(call.1450), to_apply=_roll_static_5.317
+  multiply.1572 = f64[64,64,64]{2,1,0} multiply(broadcast.1571, call.1570)
+  add.1573 = f64[64,64,64]{2,1,0} add(add.1568, multiply.1572)
+  broadcast.1574 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  compare.1019 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  slice.803 = f64[1,64,64,64]{3,2,1,0} slice(call.736), slice={[4:5], [0:64], [0:64], [0:64]}
+  reshape.804 = f64[64,64,64]{2,1,0} reshape(slice.803)
+  multiply.1020 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.804)
+  multiply.1021 = f64[64,64,64]{2,1,0} multiply(multiply.1020, reshape.756)
+  negate.909 = f64[64,64,64]{2,1,0} negate(reshape.816)
+  multiply.910 = f64[64,64,64]{2,1,0} multiply(negate.909, reshape.840)
+  negate.911 = f64[64,64,64]{2,1,0} negate(reshape.818)
+  multiply.912 = f64[64,64,64]{2,1,0} multiply(negate.911, reshape.842)
+  add.993 = f64[64,64,64]{2,1,0} add(multiply.910, multiply.912)
+  multiply.994 = f64[64,64,64]{2,1,0} multiply(add.993, broadcast.426)
+  slice.805 = f64[1,64,64,64]{3,2,1,0} slice(add.731), slice={[4:5], [0:64], [0:64], [0:64]}
+  reshape.806 = f64[64,64,64]{2,1,0} reshape(slice.805)
+  subtract.995 = f64[64,64,64]{2,1,0} subtract(reshape.806, reshape.804)
+  multiply.996 = f64[64,64,64]{2,1,0} multiply(subtract.995, broadcast.426)
+  multiply.997 = f64[64,64,64]{2,1,0} multiply(multiply.996, multiply.962)
+  subtract.998 = f64[64,64,64]{2,1,0} subtract(multiply.994, multiply.997)
+  add.1022 = f64[64,64,64]{2,1,0} add(multiply.1021, subtract.998)
+  multiply.1023 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.806)
+  multiply.1024 = f64[64,64,64]{2,1,0} multiply(multiply.1023, reshape.758)
+  add.1025 = f64[64,64,64]{2,1,0} add(multiply.1024, subtract.998)
+  call.1026 = f64[64,64,64]{2,1,0} call(compare.1019, add.1022, add.1025), to_apply=_where_2.172
+  multiply.1575 = f64[64,64,64]{2,1,0} multiply(broadcast.1574, call.1026)
+  add.1576 = f64[64,64,64]{2,1,0} add(Arg_3.401, multiply.1575)
+  negate.1577 = f64[] negate(divide.1499)
+  broadcast.1579 = f64[64,64,64]{2,1,0} broadcast(negate.1577), dimensions={}
+  call.1578 = f64[64,64,64]{2,1,0} call(call.1026), to_apply=_roll_static_3.322
+  multiply.1580 = f64[64,64,64]{2,1,0} multiply(broadcast.1579, call.1578)
+  add.1581 = f64[64,64,64]{2,1,0} add(add.1576, multiply.1580)
+  broadcast.1582 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  compare.1235 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  slice.807 = f64[1,64,64,64]{3,2,1,0} slice(call.745), slice={[4:5], [0:64], [0:64], [0:64]}
+  reshape.808 = f64[64,64,64]{2,1,0} reshape(slice.807)
+  multiply.1236 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.808)
+  multiply.1237 = f64[64,64,64]{2,1,0} multiply(multiply.1236, reshape.760)
+  negate.1125 = f64[64,64,64]{2,1,0} negate(reshape.832)
+  multiply.1126 = f64[64,64,64]{2,1,0} multiply(negate.1125, reshape.844)
+  negate.1127 = f64[64,64,64]{2,1,0} negate(reshape.834)
+  multiply.1128 = f64[64,64,64]{2,1,0} multiply(negate.1127, reshape.846)
+  add.1209 = f64[64,64,64]{2,1,0} add(multiply.1126, multiply.1128)
+  multiply.1210 = f64[64,64,64]{2,1,0} multiply(add.1209, broadcast.426)
+  slice.809 = f64[1,64,64,64]{3,2,1,0} slice(add.740), slice={[4:5], [0:64], [0:64], [0:64]}
+  reshape.810 = f64[64,64,64]{2,1,0} reshape(slice.809)
+  subtract.1211 = f64[64,64,64]{2,1,0} subtract(reshape.810, reshape.808)
+  multiply.1212 = f64[64,64,64]{2,1,0} multiply(subtract.1211, broadcast.426)
+  multiply.1213 = f64[64,64,64]{2,1,0} multiply(multiply.1212, multiply.1178)
+  subtract.1214 = f64[64,64,64]{2,1,0} subtract(multiply.1210, multiply.1213)
+  add.1238 = f64[64,64,64]{2,1,0} add(multiply.1237, subtract.1214)
+  multiply.1239 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.810)
+  multiply.1240 = f64[64,64,64]{2,1,0} multiply(multiply.1239, reshape.762)
+  add.1241 = f64[64,64,64]{2,1,0} add(multiply.1240, subtract.1214)
+  call.1242 = f64[64,64,64]{2,1,0} call(compare.1235, add.1238, add.1241), to_apply=_where_2.212
+  multiply.1583 = f64[64,64,64]{2,1,0} multiply(broadcast.1582, call.1242)
+  add.1584 = f64[64,64,64]{2,1,0} add(add.1581, multiply.1583)
+  negate.1585 = f64[] negate(divide.1500)
+  broadcast.1587 = f64[64,64,64]{2,1,0} broadcast(negate.1585), dimensions={}
+  call.1586 = f64[64,64,64]{2,1,0} call(call.1242), to_apply=_roll_static_4.327
+  multiply.1588 = f64[64,64,64]{2,1,0} multiply(broadcast.1587, call.1586)
+  add.1589 = f64[64,64,64]{2,1,0} add(add.1584, multiply.1588)
+  broadcast.1590 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  compare.1435 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  multiply.1436 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.812)
+  multiply.1437 = f64[64,64,64]{2,1,0} multiply(multiply.1436, reshape.764)
+  add.1401 = f64[64,64,64]{2,1,0} add(subtract.1327, subtract.1336)
+  multiply.1402 = f64[64,64,64]{2,1,0} multiply(add.1401, broadcast.426)
+  subtract.1403 = f64[64,64,64]{2,1,0} subtract(reshape.814, reshape.812)
+  multiply.1404 = f64[64,64,64]{2,1,0} multiply(subtract.1403, broadcast.426)
+  multiply.1405 = f64[64,64,64]{2,1,0} multiply(multiply.1404, multiply.1394)
+  subtract.1406 = f64[64,64,64]{2,1,0} subtract(multiply.1402, multiply.1405)
+  add.1438 = f64[64,64,64]{2,1,0} add(multiply.1437, subtract.1406)
+  multiply.1439 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.814)
+  multiply.1440 = f64[64,64,64]{2,1,0} multiply(multiply.1439, reshape.766)
+  add.1441 = f64[64,64,64]{2,1,0} add(multiply.1440, subtract.1406)
+  call.1442 = f64[64,64,64]{2,1,0} call(compare.1435, add.1438, add.1441), to_apply=_where_2.242
+  multiply.1591 = f64[64,64,64]{2,1,0} multiply(broadcast.1590, call.1442)
+  add.1592 = f64[64,64,64]{2,1,0} add(add.1589, multiply.1591)
+  negate.1593 = f64[] negate(divide.1501)
+  broadcast.1595 = f64[64,64,64]{2,1,0} broadcast(negate.1593), dimensions={}
+  call.1594 = f64[64,64,64]{2,1,0} call(call.1442), to_apply=_roll_static_5.332
+  multiply.1596 = f64[64,64,64]{2,1,0} multiply(broadcast.1595, call.1594)
+  add.1597 = f64[64,64,64]{2,1,0} add(add.1592, multiply.1596)
+  broadcast.1598 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  compare.1027 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  constant.427 = f64[] constant(1)
+  subtract.851 = f64[] subtract(Arg_8.406, constant.427)
+  broadcast.852 = f64[64,64,64]{2,1,0} broadcast(subtract.851), dimensions={}
+  divide.853 = f64[64,64,64]{2,1,0} divide(reshape.768, broadcast.852)
+  multiply.854 = f64[64,64,64]{2,1,0} multiply(reshape.756, broadcast.426)
+  multiply.855 = f64[64,64,64]{2,1,0} multiply(reshape.780, reshape.780)
+  multiply.856 = f64[64,64,64]{2,1,0} multiply(reshape.792, reshape.792)
+  add.857 = f64[64,64,64]{2,1,0} add(multiply.855, multiply.856)
+  multiply.858 = f64[64,64,64]{2,1,0} multiply(reshape.804, reshape.804)
+  add.859 = f64[64,64,64]{2,1,0} add(add.857, multiply.858)
+  multiply.860 = f64[64,64,64]{2,1,0} multiply(multiply.854, add.859)
+  add.861 = f64[64,64,64]{2,1,0} add(divide.853, multiply.860)
+  multiply.862 = f64[64,64,64]{2,1,0} multiply(reshape.816, reshape.816)
+  multiply.863 = f64[64,64,64]{2,1,0} multiply(reshape.828, reshape.828)
+  add.864 = f64[64,64,64]{2,1,0} add(multiply.862, multiply.863)
+  multiply.865 = f64[64,64,64]{2,1,0} multiply(reshape.840, reshape.840)
+  add.866 = f64[64,64,64]{2,1,0} add(add.864, multiply.865)
+  multiply.867 = f64[64,64,64]{2,1,0} multiply(add.866, broadcast.426)
+  add.868 = f64[64,64,64]{2,1,0} add(add.861, multiply.867)
+  multiply.1028 = f64[64,64,64]{2,1,0} multiply(subtract.968, add.868)
+  multiply.1029 = f64[64,64,64]{2,1,0} multiply(subtract.974, subtract.968)
+  add.1030 = f64[64,64,64]{2,1,0} add(multiply.1028, multiply.1029)
+  add.975 = f64[64,64,64]{2,1,0} add(reshape.792, reshape.794)
+  multiply.976 = f64[64,64,64]{2,1,0} multiply(add.975, broadcast.426)
+  subtract.977 = f64[64,64,64]{2,1,0} subtract(multiply.908, multiply.906)
+  multiply.978 = f64[64,64,64]{2,1,0} multiply(subtract.977, broadcast.426)
+  divide.979 = f64[64,64,64]{2,1,0} divide(multiply.978, multiply.962)
+  subtract.980 = f64[64,64,64]{2,1,0} subtract(multiply.976, divide.979)
+  multiply.1031 = f64[64,64,64]{2,1,0} multiply(subtract.986, subtract.980)
+  add.1032 = f64[64,64,64]{2,1,0} add(add.1030, multiply.1031)
+  add.987 = f64[64,64,64]{2,1,0} add(reshape.804, reshape.806)
+  multiply.988 = f64[64,64,64]{2,1,0} multiply(add.987, broadcast.426)
+  subtract.989 = f64[64,64,64]{2,1,0} subtract(multiply.912, multiply.910)
+  multiply.990 = f64[64,64,64]{2,1,0} multiply(subtract.989, broadcast.426)
+  divide.991 = f64[64,64,64]{2,1,0} divide(multiply.990, multiply.962)
+  subtract.992 = f64[64,64,64]{2,1,0} subtract(multiply.988, divide.991)
+  multiply.1033 = f64[64,64,64]{2,1,0} multiply(subtract.998, subtract.992)
+  add.1034 = f64[64,64,64]{2,1,0} add(add.1032, multiply.1033)
+  subtract.869 = f64[] subtract(Arg_8.406, constant.427)
+  broadcast.870 = f64[64,64,64]{2,1,0} broadcast(subtract.869), dimensions={}
+  divide.871 = f64[64,64,64]{2,1,0} divide(reshape.770, broadcast.870)
+  multiply.872 = f64[64,64,64]{2,1,0} multiply(reshape.758, broadcast.426)
+  multiply.873 = f64[64,64,64]{2,1,0} multiply(reshape.782, reshape.782)
+  multiply.874 = f64[64,64,64]{2,1,0} multiply(reshape.794, reshape.794)
+  add.875 = f64[64,64,64]{2,1,0} add(multiply.873, multiply.874)
+  multiply.876 = f64[64,64,64]{2,1,0} multiply(reshape.806, reshape.806)
+  add.877 = f64[64,64,64]{2,1,0} add(add.875, multiply.876)
+  multiply.878 = f64[64,64,64]{2,1,0} multiply(multiply.872, add.877)
+  add.879 = f64[64,64,64]{2,1,0} add(divide.871, multiply.878)
+  multiply.880 = f64[64,64,64]{2,1,0} multiply(reshape.818, reshape.818)
+  multiply.881 = f64[64,64,64]{2,1,0} multiply(reshape.830, reshape.830)
+  add.882 = f64[64,64,64]{2,1,0} add(multiply.880, multiply.881)
+  multiply.883 = f64[64,64,64]{2,1,0} multiply(reshape.842, reshape.842)
+  add.884 = f64[64,64,64]{2,1,0} add(add.882, multiply.883)
+  multiply.885 = f64[64,64,64]{2,1,0} multiply(add.884, broadcast.426)
+  add.886 = f64[64,64,64]{2,1,0} add(add.879, multiply.885)
+  multiply.1035 = f64[64,64,64]{2,1,0} multiply(subtract.968, add.886)
+  multiply.1036 = f64[64,64,64]{2,1,0} multiply(subtract.974, subtract.968)
+  add.1037 = f64[64,64,64]{2,1,0} add(multiply.1035, multiply.1036)
+  multiply.1038 = f64[64,64,64]{2,1,0} multiply(subtract.986, subtract.980)
+  add.1039 = f64[64,64,64]{2,1,0} add(add.1037, multiply.1038)
+  multiply.1040 = f64[64,64,64]{2,1,0} multiply(subtract.998, subtract.992)
+  add.1041 = f64[64,64,64]{2,1,0} add(add.1039, multiply.1040)
+  call.1042 = f64[64,64,64]{2,1,0} call(compare.1027, add.1034, add.1041), to_apply=_where_2.177
+  multiply.1599 = f64[64,64,64]{2,1,0} multiply(broadcast.1598, call.1042)
+  add.1600 = f64[64,64,64]{2,1,0} add(Arg_4.402, multiply.1599)
+  negate.1601 = f64[] negate(divide.1499)
+  broadcast.1603 = f64[64,64,64]{2,1,0} broadcast(negate.1601), dimensions={}
+  call.1602 = f64[64,64,64]{2,1,0} call(call.1042), to_apply=_roll_static_3.337
+  multiply.1604 = f64[64,64,64]{2,1,0} multiply(broadcast.1603, call.1602)
+  add.1605 = f64[64,64,64]{2,1,0} add(add.1600, multiply.1604)
+  broadcast.1606 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  compare.1243 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  subtract.1067 = f64[] subtract(Arg_8.406, constant.427)
+  broadcast.1068 = f64[64,64,64]{2,1,0} broadcast(subtract.1067), dimensions={}
+  divide.1069 = f64[64,64,64]{2,1,0} divide(reshape.772, broadcast.1068)
+  multiply.1070 = f64[64,64,64]{2,1,0} multiply(reshape.760, broadcast.426)
+  multiply.1071 = f64[64,64,64]{2,1,0} multiply(reshape.796, reshape.796)
+  multiply.1072 = f64[64,64,64]{2,1,0} multiply(reshape.784, reshape.784)
+  add.1073 = f64[64,64,64]{2,1,0} add(multiply.1071, multiply.1072)
+  multiply.1074 = f64[64,64,64]{2,1,0} multiply(reshape.808, reshape.808)
+  add.1075 = f64[64,64,64]{2,1,0} add(add.1073, multiply.1074)
+  multiply.1076 = f64[64,64,64]{2,1,0} multiply(multiply.1070, add.1075)
+  add.1077 = f64[64,64,64]{2,1,0} add(divide.1069, multiply.1076)
+  multiply.1078 = f64[64,64,64]{2,1,0} multiply(reshape.832, reshape.832)
+  multiply.1079 = f64[64,64,64]{2,1,0} multiply(reshape.820, reshape.820)
+  add.1080 = f64[64,64,64]{2,1,0} add(multiply.1078, multiply.1079)
+  multiply.1081 = f64[64,64,64]{2,1,0} multiply(reshape.844, reshape.844)
+  add.1082 = f64[64,64,64]{2,1,0} add(add.1080, multiply.1081)
+  multiply.1083 = f64[64,64,64]{2,1,0} multiply(add.1082, broadcast.426)
+  add.1084 = f64[64,64,64]{2,1,0} add(add.1077, multiply.1083)
+  multiply.1244 = f64[64,64,64]{2,1,0} multiply(subtract.1184, add.1084)
+  multiply.1245 = f64[64,64,64]{2,1,0} multiply(subtract.1190, subtract.1184)
+  add.1246 = f64[64,64,64]{2,1,0} add(multiply.1244, multiply.1245)
+  add.1191 = f64[64,64,64]{2,1,0} add(reshape.784, reshape.786)
+  multiply.1192 = f64[64,64,64]{2,1,0} multiply(add.1191, broadcast.426)
+  subtract.1193 = f64[64,64,64]{2,1,0} subtract(multiply.1124, multiply.1122)
+  multiply.1194 = f64[64,64,64]{2,1,0} multiply(subtract.1193, broadcast.426)
+  divide.1195 = f64[64,64,64]{2,1,0} divide(multiply.1194, multiply.1178)
+  subtract.1196 = f64[64,64,64]{2,1,0} subtract(multiply.1192, divide.1195)
+  multiply.1247 = f64[64,64,64]{2,1,0} multiply(subtract.1202, subtract.1196)
+  add.1248 = f64[64,64,64]{2,1,0} add(add.1246, multiply.1247)
+  add.1203 = f64[64,64,64]{2,1,0} add(reshape.808, reshape.810)
+  multiply.1204 = f64[64,64,64]{2,1,0} multiply(add.1203, broadcast.426)
+  subtract.1205 = f64[64,64,64]{2,1,0} subtract(multiply.1128, multiply.1126)
+  multiply.1206 = f64[64,64,64]{2,1,0} multiply(subtract.1205, broadcast.426)
+  divide.1207 = f64[64,64,64]{2,1,0} divide(multiply.1206, multiply.1178)
+  subtract.1208 = f64[64,64,64]{2,1,0} subtract(multiply.1204, divide.1207)
+  multiply.1249 = f64[64,64,64]{2,1,0} multiply(subtract.1214, subtract.1208)
+  add.1250 = f64[64,64,64]{2,1,0} add(add.1248, multiply.1249)
+  subtract.1085 = f64[] subtract(Arg_8.406, constant.427)
+  broadcast.1086 = f64[64,64,64]{2,1,0} broadcast(subtract.1085), dimensions={}
+  divide.1087 = f64[64,64,64]{2,1,0} divide(reshape.774, broadcast.1086)
+  multiply.1088 = f64[64,64,64]{2,1,0} multiply(reshape.762, broadcast.426)
+  multiply.1089 = f64[64,64,64]{2,1,0} multiply(reshape.798, reshape.798)
+  multiply.1090 = f64[64,64,64]{2,1,0} multiply(reshape.786, reshape.786)
+  add.1091 = f64[64,64,64]{2,1,0} add(multiply.1089, multiply.1090)
+  multiply.1092 = f64[64,64,64]{2,1,0} multiply(reshape.810, reshape.810)
+  add.1093 = f64[64,64,64]{2,1,0} add(add.1091, multiply.1092)
+  multiply.1094 = f64[64,64,64]{2,1,0} multiply(multiply.1088, add.1093)
+  add.1095 = f64[64,64,64]{2,1,0} add(divide.1087, multiply.1094)
+  multiply.1096 = f64[64,64,64]{2,1,0} multiply(reshape.834, reshape.834)
+  multiply.1097 = f64[64,64,64]{2,1,0} multiply(reshape.822, reshape.822)
+  add.1098 = f64[64,64,64]{2,1,0} add(multiply.1096, multiply.1097)
+  multiply.1099 = f64[64,64,64]{2,1,0} multiply(reshape.846, reshape.846)
+  add.1100 = f64[64,64,64]{2,1,0} add(add.1098, multiply.1099)
+  multiply.1101 = f64[64,64,64]{2,1,0} multiply(add.1100, broadcast.426)
+  add.1102 = f64[64,64,64]{2,1,0} add(add.1095, multiply.1101)
+  multiply.1251 = f64[64,64,64]{2,1,0} multiply(subtract.1184, add.1102)
+  multiply.1252 = f64[64,64,64]{2,1,0} multiply(subtract.1190, subtract.1184)
+  add.1253 = f64[64,64,64]{2,1,0} add(multiply.1251, multiply.1252)
+  multiply.1254 = f64[64,64,64]{2,1,0} multiply(subtract.1202, subtract.1196)
+  add.1255 = f64[64,64,64]{2,1,0} add(add.1253, multiply.1254)
+  multiply.1256 = f64[64,64,64]{2,1,0} multiply(subtract.1214, subtract.1208)
+  add.1257 = f64[64,64,64]{2,1,0} add(add.1255, multiply.1256)
+  call.1258 = f64[64,64,64]{2,1,0} call(compare.1243, add.1250, add.1257), to_apply=_where_2.217
+  multiply.1607 = f64[64,64,64]{2,1,0} multiply(broadcast.1606, call.1258)
+  add.1608 = f64[64,64,64]{2,1,0} add(add.1605, multiply.1607)
+  negate.1609 = f64[] negate(divide.1500)
+  broadcast.1611 = f64[64,64,64]{2,1,0} broadcast(negate.1609), dimensions={}
+  call.1610 = f64[64,64,64]{2,1,0} call(call.1258), to_apply=_roll_static_4.342
+  multiply.1612 = f64[64,64,64]{2,1,0} multiply(broadcast.1611, call.1610)
+  add.1613 = f64[64,64,64]{2,1,0} add(add.1608, multiply.1612)
+  broadcast.1614 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  compare.1459 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  subtract.1283 = f64[] subtract(Arg_8.406, constant.427)
+  broadcast.1284 = f64[64,64,64]{2,1,0} broadcast(subtract.1283), dimensions={}
+  divide.1285 = f64[64,64,64]{2,1,0} divide(reshape.776, broadcast.1284)
+  multiply.1286 = f64[64,64,64]{2,1,0} multiply(reshape.764, broadcast.426)
+  multiply.1287 = f64[64,64,64]{2,1,0} multiply(reshape.812, reshape.812)
+  multiply.1288 = f64[64,64,64]{2,1,0} multiply(reshape.800, reshape.800)
+  add.1289 = f64[64,64,64]{2,1,0} add(multiply.1287, multiply.1288)
+  multiply.1290 = f64[64,64,64]{2,1,0} multiply(reshape.788, reshape.788)
+  add.1291 = f64[64,64,64]{2,1,0} add(add.1289, multiply.1290)
+  multiply.1292 = f64[64,64,64]{2,1,0} multiply(multiply.1286, add.1291)
+  add.1293 = f64[64,64,64]{2,1,0} add(divide.1285, multiply.1292)
+  multiply.1294 = f64[64,64,64]{2,1,0} multiply(reshape.848, reshape.848)
+  multiply.1295 = f64[64,64,64]{2,1,0} multiply(reshape.836, reshape.836)
+  add.1296 = f64[64,64,64]{2,1,0} add(multiply.1294, multiply.1295)
+  multiply.1297 = f64[64,64,64]{2,1,0} multiply(reshape.824, reshape.824)
+  add.1298 = f64[64,64,64]{2,1,0} add(add.1296, multiply.1297)
+  multiply.1299 = f64[64,64,64]{2,1,0} multiply(add.1298, broadcast.426)
+  add.1300 = f64[64,64,64]{2,1,0} add(add.1293, multiply.1299)
+  multiply.1460 = f64[64,64,64]{2,1,0} multiply(subtract.1400, add.1300)
+  multiply.1461 = f64[64,64,64]{2,1,0} multiply(subtract.1406, subtract.1400)
+  add.1462 = f64[64,64,64]{2,1,0} add(multiply.1460, multiply.1461)
+  add.1407 = f64[64,64,64]{2,1,0} add(reshape.800, reshape.802)
+  multiply.1408 = f64[64,64,64]{2,1,0} multiply(add.1407, broadcast.426)
+  subtract.1409 = f64[64,64,64]{2,1,0} subtract(multiply.1340, multiply.1338)
+  multiply.1410 = f64[64,64,64]{2,1,0} multiply(subtract.1409, broadcast.426)
+  divide.1411 = f64[64,64,64]{2,1,0} divide(multiply.1410, multiply.1394)
+  subtract.1412 = f64[64,64,64]{2,1,0} subtract(multiply.1408, divide.1411)
+  multiply.1463 = f64[64,64,64]{2,1,0} multiply(subtract.1418, subtract.1412)
+  add.1464 = f64[64,64,64]{2,1,0} add(add.1462, multiply.1463)
+  add.1419 = f64[64,64,64]{2,1,0} add(reshape.788, reshape.790)
+  multiply.1420 = f64[64,64,64]{2,1,0} multiply(add.1419, broadcast.426)
+  subtract.1421 = f64[64,64,64]{2,1,0} subtract(multiply.1344, multiply.1342)
+  multiply.1422 = f64[64,64,64]{2,1,0} multiply(subtract.1421, broadcast.426)
+  divide.1423 = f64[64,64,64]{2,1,0} divide(multiply.1422, multiply.1394)
+  subtract.1424 = f64[64,64,64]{2,1,0} subtract(multiply.1420, divide.1423)
+  multiply.1465 = f64[64,64,64]{2,1,0} multiply(subtract.1430, subtract.1424)
+  add.1466 = f64[64,64,64]{2,1,0} add(add.1464, multiply.1465)
+  subtract.1301 = f64[] subtract(Arg_8.406, constant.427)
+  broadcast.1302 = f64[64,64,64]{2,1,0} broadcast(subtract.1301), dimensions={}
+  divide.1303 = f64[64,64,64]{2,1,0} divide(reshape.778, broadcast.1302)
+  multiply.1304 = f64[64,64,64]{2,1,0} multiply(reshape.766, broadcast.426)
+  multiply.1305 = f64[64,64,64]{2,1,0} multiply(reshape.814, reshape.814)
+  multiply.1306 = f64[64,64,64]{2,1,0} multiply(reshape.802, reshape.802)
+  add.1307 = f64[64,64,64]{2,1,0} add(multiply.1305, multiply.1306)
+  multiply.1308 = f64[64,64,64]{2,1,0} multiply(reshape.790, reshape.790)
+  add.1309 = f64[64,64,64]{2,1,0} add(add.1307, multiply.1308)
+  multiply.1310 = f64[64,64,64]{2,1,0} multiply(multiply.1304, add.1309)
+  add.1311 = f64[64,64,64]{2,1,0} add(divide.1303, multiply.1310)
+  multiply.1312 = f64[64,64,64]{2,1,0} multiply(reshape.850, reshape.850)
+  multiply.1313 = f64[64,64,64]{2,1,0} multiply(reshape.838, reshape.838)
+  add.1314 = f64[64,64,64]{2,1,0} add(multiply.1312, multiply.1313)
+  multiply.1315 = f64[64,64,64]{2,1,0} multiply(reshape.826, reshape.826)
+  add.1316 = f64[64,64,64]{2,1,0} add(add.1314, multiply.1315)
+  multiply.1317 = f64[64,64,64]{2,1,0} multiply(add.1316, broadcast.426)
+  add.1318 = f64[64,64,64]{2,1,0} add(add.1311, multiply.1317)
+  multiply.1467 = f64[64,64,64]{2,1,0} multiply(subtract.1400, add.1318)
+  multiply.1468 = f64[64,64,64]{2,1,0} multiply(subtract.1406, subtract.1400)
+  add.1469 = f64[64,64,64]{2,1,0} add(multiply.1467, multiply.1468)
+  multiply.1470 = f64[64,64,64]{2,1,0} multiply(subtract.1418, subtract.1412)
+  add.1471 = f64[64,64,64]{2,1,0} add(add.1469, multiply.1470)
+  multiply.1472 = f64[64,64,64]{2,1,0} multiply(subtract.1430, subtract.1424)
+  add.1473 = f64[64,64,64]{2,1,0} add(add.1471, multiply.1472)
+  call.1474 = f64[64,64,64]{2,1,0} call(compare.1459, add.1466, add.1473), to_apply=_where_2.257
+  multiply.1615 = f64[64,64,64]{2,1,0} multiply(broadcast.1614, call.1474)
+  add.1616 = f64[64,64,64]{2,1,0} add(add.1613, multiply.1615)
+  negate.1617 = f64[] negate(divide.1501)
+  broadcast.1619 = f64[64,64,64]{2,1,0} broadcast(negate.1617), dimensions={}
+  call.1618 = f64[64,64,64]{2,1,0} call(call.1474), to_apply=_roll_static_5.347
+  multiply.1620 = f64[64,64,64]{2,1,0} multiply(broadcast.1619, call.1618)
+  add.1621 = f64[64,64,64]{2,1,0} add(add.1616, multiply.1620)
+  broadcast.1622 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  compare.1043 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  multiply.1044 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.816)
+  multiply.1045 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.818)
+  subtract.1046 = f64[64,64,64]{2,1,0} subtract(multiply.1044, multiply.1045)
+  multiply.1047 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.818)
+  multiply.1048 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.816)
+  subtract.1049 = f64[64,64,64]{2,1,0} subtract(multiply.1047, multiply.1048)
+  call.1050 = f64[64,64,64]{2,1,0} call(compare.1043, subtract.1046, subtract.1049), to_apply=_where_2.182
+  multiply.1623 = f64[64,64,64]{2,1,0} multiply(broadcast.1622, call.1050)
+  add.1624 = f64[64,64,64]{2,1,0} add(get-tuple-element.438, multiply.1623)
+  negate.1625 = f64[] negate(divide.1499)
+  broadcast.1627 = f64[64,64,64]{2,1,0} broadcast(negate.1625), dimensions={}
+  call.1626 = f64[64,64,64]{2,1,0} call(call.1050), to_apply=_roll_static_3.352
+  multiply.1628 = f64[64,64,64]{2,1,0} multiply(broadcast.1627, call.1626)
+  add.1629 = f64[64,64,64]{2,1,0} add(add.1624, multiply.1628)
+  broadcast.1630 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  compare.1267 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  multiply.1268 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.820)
+  multiply.1269 = f64[64,64,64]{2,1,0} multiply(subtract.1196, reshape.834)
+  subtract.1270 = f64[64,64,64]{2,1,0} subtract(multiply.1268, multiply.1269)
+  multiply.1271 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.822)
+  multiply.1272 = f64[64,64,64]{2,1,0} multiply(subtract.1196, reshape.832)
+  subtract.1273 = f64[64,64,64]{2,1,0} subtract(multiply.1271, multiply.1272)
+  call.1274 = f64[64,64,64]{2,1,0} call(compare.1267, subtract.1270, subtract.1273), to_apply=_where_2.227
+  multiply.1631 = f64[64,64,64]{2,1,0} multiply(broadcast.1630, call.1274)
+  add.1632 = f64[64,64,64]{2,1,0} add(add.1629, multiply.1631)
+  negate.1633 = f64[] negate(divide.1500)
+  broadcast.1635 = f64[64,64,64]{2,1,0} broadcast(negate.1633), dimensions={}
+  call.1634 = f64[64,64,64]{2,1,0} call(call.1274), to_apply=_roll_static_4.357
+  multiply.1636 = f64[64,64,64]{2,1,0} multiply(broadcast.1635, call.1634)
+  add.1637 = f64[64,64,64]{2,1,0} add(add.1632, multiply.1636)
+  broadcast.1638 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  compare.1491 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  multiply.1492 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.824)
+  multiply.1493 = f64[64,64,64]{2,1,0} multiply(subtract.1424, reshape.850)
+  subtract.1494 = f64[64,64,64]{2,1,0} subtract(multiply.1492, multiply.1493)
+  multiply.1495 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.826)
+  multiply.1496 = f64[64,64,64]{2,1,0} multiply(subtract.1424, reshape.848)
+  subtract.1497 = f64[64,64,64]{2,1,0} subtract(multiply.1495, multiply.1496)
+  call.1498 = f64[64,64,64]{2,1,0} call(compare.1491, subtract.1494, subtract.1497), to_apply=_where_2.272
+  multiply.1639 = f64[64,64,64]{2,1,0} multiply(broadcast.1638, call.1498)
+  add.1640 = f64[64,64,64]{2,1,0} add(add.1637, multiply.1639)
+  negate.1641 = f64[] negate(divide.1501)
+  broadcast.1643 = f64[64,64,64]{2,1,0} broadcast(negate.1641), dimensions={}
+  call.1642 = f64[64,64,64]{2,1,0} call(call.1498), to_apply=_roll_static_5.362
+  multiply.1644 = f64[64,64,64]{2,1,0} multiply(broadcast.1643, call.1642)
+  add.1645 = f64[64,64,64]{2,1,0} add(add.1640, multiply.1644)
+  broadcast.1646 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  compare.1051 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  multiply.1052 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.828)
+  multiply.1053 = f64[64,64,64]{2,1,0} multiply(subtract.980, reshape.818)
+  subtract.1054 = f64[64,64,64]{2,1,0} subtract(multiply.1052, multiply.1053)
+  multiply.1055 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.830)
+  multiply.1056 = f64[64,64,64]{2,1,0} multiply(subtract.980, reshape.816)
+  subtract.1057 = f64[64,64,64]{2,1,0} subtract(multiply.1055, multiply.1056)
+  call.1058 = f64[64,64,64]{2,1,0} call(compare.1051, subtract.1054, subtract.1057), to_apply=_where_2.187
+  multiply.1647 = f64[64,64,64]{2,1,0} multiply(broadcast.1646, call.1058)
+  add.1648 = f64[64,64,64]{2,1,0} add(get-tuple-element.439, multiply.1647)
+  negate.1649 = f64[] negate(divide.1499)
+  broadcast.1651 = f64[64,64,64]{2,1,0} broadcast(negate.1649), dimensions={}
+  call.1650 = f64[64,64,64]{2,1,0} call(call.1058), to_apply=_roll_static_3.367
+  multiply.1652 = f64[64,64,64]{2,1,0} multiply(broadcast.1651, call.1650)
+  add.1653 = f64[64,64,64]{2,1,0} add(add.1648, multiply.1652)
+  broadcast.1654 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  compare.1259 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  multiply.1260 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.832)
+  multiply.1261 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.834)
+  subtract.1262 = f64[64,64,64]{2,1,0} subtract(multiply.1260, multiply.1261)
+  multiply.1263 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.834)
+  multiply.1264 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.832)
+  subtract.1265 = f64[64,64,64]{2,1,0} subtract(multiply.1263, multiply.1264)
+  call.1266 = f64[64,64,64]{2,1,0} call(compare.1259, subtract.1262, subtract.1265), to_apply=_where_2.222
+  multiply.1655 = f64[64,64,64]{2,1,0} multiply(broadcast.1654, call.1266)
+  add.1656 = f64[64,64,64]{2,1,0} add(add.1653, multiply.1655)
+  negate.1657 = f64[] negate(divide.1500)
+  broadcast.1659 = f64[64,64,64]{2,1,0} broadcast(negate.1657), dimensions={}
+  call.1658 = f64[64,64,64]{2,1,0} call(call.1266), to_apply=_roll_static_4.372
+  multiply.1660 = f64[64,64,64]{2,1,0} multiply(broadcast.1659, call.1658)
+  add.1661 = f64[64,64,64]{2,1,0} add(add.1656, multiply.1660)
+  broadcast.1662 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  compare.1483 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  multiply.1484 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.836)
+  multiply.1485 = f64[64,64,64]{2,1,0} multiply(subtract.1412, reshape.850)
+  subtract.1486 = f64[64,64,64]{2,1,0} subtract(multiply.1484, multiply.1485)
+  multiply.1487 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.838)
+  multiply.1488 = f64[64,64,64]{2,1,0} multiply(subtract.1412, reshape.848)
+  subtract.1489 = f64[64,64,64]{2,1,0} subtract(multiply.1487, multiply.1488)
+  call.1490 = f64[64,64,64]{2,1,0} call(compare.1483, subtract.1486, subtract.1489), to_apply=_where_2.267
+  multiply.1663 = f64[64,64,64]{2,1,0} multiply(broadcast.1662, call.1490)
+  add.1664 = f64[64,64,64]{2,1,0} add(add.1661, multiply.1663)
+  negate.1665 = f64[] negate(divide.1501)
+  broadcast.1667 = f64[64,64,64]{2,1,0} broadcast(negate.1665), dimensions={}
+  call.1666 = f64[64,64,64]{2,1,0} call(call.1490), to_apply=_roll_static_5.377
+  multiply.1668 = f64[64,64,64]{2,1,0} multiply(broadcast.1667, call.1666)
+  add.1669 = f64[64,64,64]{2,1,0} add(add.1664, multiply.1668)
+  broadcast.1670 = f64[64,64,64]{2,1,0} broadcast(divide.1499), dimensions={}
+  compare.1059 = pred[64,64,64]{2,1,0} compare(subtract.968, broadcast.412), direction=GT
+  multiply.1060 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.840)
+  multiply.1061 = f64[64,64,64]{2,1,0} multiply(subtract.992, reshape.818)
+  subtract.1062 = f64[64,64,64]{2,1,0} subtract(multiply.1060, multiply.1061)
+  multiply.1063 = f64[64,64,64]{2,1,0} multiply(subtract.968, reshape.842)
+  multiply.1064 = f64[64,64,64]{2,1,0} multiply(subtract.992, reshape.816)
+  subtract.1065 = f64[64,64,64]{2,1,0} subtract(multiply.1063, multiply.1064)
+  call.1066 = f64[64,64,64]{2,1,0} call(compare.1059, subtract.1062, subtract.1065), to_apply=_where_2.192
+  multiply.1671 = f64[64,64,64]{2,1,0} multiply(broadcast.1670, call.1066)
+  add.1672 = f64[64,64,64]{2,1,0} add(get-tuple-element.440, multiply.1671)
+  negate.1673 = f64[] negate(divide.1499)
+  broadcast.1675 = f64[64,64,64]{2,1,0} broadcast(negate.1673), dimensions={}
+  call.1674 = f64[64,64,64]{2,1,0} call(call.1066), to_apply=_roll_static_3.382
+  multiply.1676 = f64[64,64,64]{2,1,0} multiply(broadcast.1675, call.1674)
+  add.1677 = f64[64,64,64]{2,1,0} add(add.1672, multiply.1676)
+  broadcast.1678 = f64[64,64,64]{2,1,0} broadcast(divide.1500), dimensions={}
+  compare.1275 = pred[64,64,64]{2,1,0} compare(subtract.1184, broadcast.412), direction=GT
+  multiply.1276 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.844)
+  multiply.1277 = f64[64,64,64]{2,1,0} multiply(subtract.1208, reshape.834)
+  subtract.1278 = f64[64,64,64]{2,1,0} subtract(multiply.1276, multiply.1277)
+  multiply.1279 = f64[64,64,64]{2,1,0} multiply(subtract.1184, reshape.846)
+  multiply.1280 = f64[64,64,64]{2,1,0} multiply(subtract.1208, reshape.832)
+  subtract.1281 = f64[64,64,64]{2,1,0} subtract(multiply.1279, multiply.1280)
+  call.1282 = f64[64,64,64]{2,1,0} call(compare.1275, subtract.1278, subtract.1281), to_apply=_where_2.232
+  multiply.1679 = f64[64,64,64]{2,1,0} multiply(broadcast.1678, call.1282)
+  add.1680 = f64[64,64,64]{2,1,0} add(add.1677, multiply.1679)
+  negate.1681 = f64[] negate(divide.1500)
+  broadcast.1683 = f64[64,64,64]{2,1,0} broadcast(negate.1681), dimensions={}
+  call.1682 = f64[64,64,64]{2,1,0} call(call.1282), to_apply=_roll_static_4.387
+  multiply.1684 = f64[64,64,64]{2,1,0} multiply(broadcast.1683, call.1682)
+  add.1685 = f64[64,64,64]{2,1,0} add(add.1680, multiply.1684)
+  broadcast.1686 = f64[64,64,64]{2,1,0} broadcast(divide.1501), dimensions={}
+  compare.1475 = pred[64,64,64]{2,1,0} compare(subtract.1400, broadcast.412), direction=GT
+  multiply.1476 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.848)
+  multiply.1477 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.850)
+  subtract.1478 = f64[64,64,64]{2,1,0} subtract(multiply.1476, multiply.1477)
+  multiply.1479 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.850)
+  multiply.1480 = f64[64,64,64]{2,1,0} multiply(subtract.1400, reshape.848)
+  subtract.1481 = f64[64,64,64]{2,1,0} subtract(multiply.1479, multiply.1480)
+  call.1482 = f64[64,64,64]{2,1,0} call(compare.1475, subtract.1478, subtract.1481), to_apply=_where_2.262
+  multiply.1687 = f64[64,64,64]{2,1,0} multiply(broadcast.1686, call.1482)
+  add.1688 = f64[64,64,64]{2,1,0} add(add.1685, multiply.1687)
+  negate.1689 = f64[] negate(divide.1501)
+  broadcast.1691 = f64[64,64,64]{2,1,0} broadcast(negate.1689), dimensions={}
+  call.1690 = f64[64,64,64]{2,1,0} call(call.1482), to_apply=_roll_static_5.392
+  multiply.1692 = f64[64,64,64]{2,1,0} multiply(broadcast.1691, call.1690)
+  add.1693 = f64[64,64,64]{2,1,0} add(add.1688, multiply.1692)
+  ROOT tuple.1694 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[], f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}) tuple(add.1525, add.1549, add.1573, add.1597, add.1621, divide.513, add.1645, add.1669, add.1693)
+}
+
+scan_step.1695 {
+  Arg_0.1696 = f64[64,64,64]{2,1,0} parameter(0)
+  Arg_1.1697 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.1698 = f64[64,64,64]{2,1,0} parameter(2)
+  Arg_3.1699 = f64[64,64,64]{2,1,0} parameter(3)
+  Arg_4.1700 = f64[64,64,64]{2,1,0} parameter(4)
+  constant.1707 = f64[] constant(0.015625)
+  constant.1708 = f64[] constant(1.6666667)
+  constant.1709 = f64[] constant(0.4)
+  Arg_5.1701 = f64[64,64,64]{2,1,0} parameter(5)
+  Arg_6.1702 = f64[64,64,64]{2,1,0} parameter(6)
+  Arg_7.1703 = f64[64,64,64]{2,1,0} parameter(7)
+  call.1710 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[], f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}) call(Arg_0.1696, Arg_1.1697, Arg_2.1698, Arg_3.1699, Arg_4.1700, constant.1707, constant.1707, constant.1707, constant.1708, constant.1709, Arg_5.1701, Arg_6.1702, Arg_7.1703), to_apply=update.397
+  get-tuple-element.1711 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=0
+  get-tuple-element.1712 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=1
+  get-tuple-element.1713 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=2
+  get-tuple-element.1714 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=3
+  get-tuple-element.1715 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=4
+  get-tuple-element.1717 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=6
+  get-tuple-element.1718 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=7
+  get-tuple-element.1719 = f64[64,64,64]{2,1,0} get-tuple-element(call.1710), index=8
+  Arg_8.1704 = f64[] parameter(8)
+  get-tuple-element.1716 = f64[] get-tuple-element(call.1710), index=5
+  add.1720 = f64[] add(Arg_8.1704, get-tuple-element.1716)
+  Arg_9.1705 = s64[] parameter(9)
+  constant.1706 = s64[] constant(1)
+  add.1721 = s64[] add(Arg_9.1705, constant.1706)
+  ROOT tuple.1722 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], s64[]) tuple(get-tuple-element.1711, get-tuple-element.1712, get-tuple-element.1713, get-tuple-element.1714, get-tuple-element.1715, get-tuple-element.1717, get-tuple-element.1718, get-tuple-element.1719, add.1720, add.1721)
+}
+
+None.1723 {
+  Arg_0.1724 = f64[64,64,64]{2,1,0} parameter(0)
+  Arg_1.1725 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.1726 = f64[64,64,64]{2,1,0} parameter(2)
+  Arg_3.1727 = f64[64,64,64]{2,1,0} parameter(3)
+  Arg_4.1728 = f64[64,64,64]{2,1,0} parameter(4)
+  Arg_5.1729 = f64[64,64,64]{2,1,0} parameter(5)
+  Arg_6.1730 = f64[64,64,64]{2,1,0} parameter(6)
+  Arg_7.1731 = f64[64,64,64]{2,1,0} parameter(7)
+  Arg_8.1732 = f64[] parameter(8)
+  Arg_9.1733 = s64[] parameter(9)
+  call.1734 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], s64[]) call(Arg_0.1724, Arg_1.1725, Arg_2.1726, Arg_3.1727, Arg_4.1728, Arg_5.1729, Arg_6.1730, Arg_7.1731, Arg_8.1732, Arg_9.1733), to_apply=scan_step.1695
+  get-tuple-element.1735 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=0
+  get-tuple-element.1736 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=1
+  get-tuple-element.1737 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=2
+  get-tuple-element.1738 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=3
+  get-tuple-element.1739 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=4
+  get-tuple-element.1740 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=5
+  get-tuple-element.1741 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=6
+  get-tuple-element.1742 = f64[64,64,64]{2,1,0} get-tuple-element(call.1734), index=7
+  get-tuple-element.1743 = f64[] get-tuple-element(call.1734), index=8
+  get-tuple-element.1744 = s64[] get-tuple-element(call.1734), index=9
+  ROOT tuple.1745 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], s64[]) tuple(get-tuple-element.1735, get-tuple-element.1736, get-tuple-element.1737, get-tuple-element.1738, get-tuple-element.1739, get-tuple-element.1740, get-tuple-element.1741, get-tuple-element.1742, get-tuple-element.1743, get-tuple-element.1744)
+}
+
+region_0.1746 {
+  arg_tuple.1747 = (s64[], f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], /*index=10*/s64[]) parameter(0)
+  get-tuple-element.1748 = s64[] get-tuple-element(arg_tuple.1747), index=0
+  constant.1759 = s64[] constant(1)
+  add.1771 = s64[] add(get-tuple-element.1748, constant.1759)
+  get-tuple-element.1749 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=1
+  get-tuple-element.1750 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=2
+  get-tuple-element.1751 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=3
+  get-tuple-element.1752 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=4
+  get-tuple-element.1753 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=5
+  get-tuple-element.1754 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=6
+  get-tuple-element.1755 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=7
+  get-tuple-element.1756 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1747), index=8
+  get-tuple-element.1757 = f64[] get-tuple-element(arg_tuple.1747), index=9
+  get-tuple-element.1758 = s64[] get-tuple-element(arg_tuple.1747), index=10
+  call.1760 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], s64[]) call(get-tuple-element.1749, get-tuple-element.1750, get-tuple-element.1751, get-tuple-element.1752, get-tuple-element.1753, get-tuple-element.1754, get-tuple-element.1755, get-tuple-element.1756, get-tuple-element.1757, get-tuple-element.1758), to_apply=None.1723
+  get-tuple-element.1761 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=0
+  get-tuple-element.1762 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=1
+  get-tuple-element.1763 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=2
+  get-tuple-element.1764 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=3
+  get-tuple-element.1765 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=4
+  get-tuple-element.1766 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=5
+  get-tuple-element.1767 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=6
+  get-tuple-element.1768 = f64[64,64,64]{2,1,0} get-tuple-element(call.1760), index=7
+  get-tuple-element.1769 = f64[] get-tuple-element(call.1760), index=8
+  get-tuple-element.1770 = s64[] get-tuple-element(call.1760), index=9
+  ROOT tuple.1772 = (s64[], f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], /*index=10*/s64[]) tuple(add.1771, get-tuple-element.1761, get-tuple-element.1762, get-tuple-element.1763, get-tuple-element.1764, get-tuple-element.1765, get-tuple-element.1766, get-tuple-element.1767, get-tuple-element.1768, get-tuple-element.1769, get-tuple-element.1770)
+}
+
+region_20.1773 {
+  arg_tuple.1774 = (s64[], f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], /*index=10*/s64[]) parameter(0)
+  get-tuple-element.1776 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=1
+  get-tuple-element.1777 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=2
+  get-tuple-element.1778 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=3
+  get-tuple-element.1779 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=4
+  get-tuple-element.1780 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=5
+  get-tuple-element.1781 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=6
+  get-tuple-element.1782 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=7
+  get-tuple-element.1783 = f64[64,64,64]{2,1,0} get-tuple-element(arg_tuple.1774), index=8
+  get-tuple-element.1784 = f64[] get-tuple-element(arg_tuple.1774), index=9
+  get-tuple-element.1785 = s64[] get-tuple-element(arg_tuple.1774), index=10
+  get-tuple-element.1775 = s64[] get-tuple-element(arg_tuple.1774), index=0
+  constant.1786 = s64[] constant(182)
+  ROOT compare.1787 = pred[] compare(get-tuple-element.1775, constant.1786), direction=LT
+}
+
+ENTRY main.1801 {
+  constant.11 = s64[] constant(0)
+  Arg_0.1 = f64[64,64,64]{2,1,0} parameter(0)
+  Arg_1.2 = f64[64,64,64]{2,1,0} parameter(1)
+  Arg_2.3 = f64[64,64,64]{2,1,0} parameter(2)
+  Arg_3.4 = f64[64,64,64]{2,1,0} parameter(3)
+  Arg_4.5 = f64[64,64,64]{2,1,0} parameter(4)
+  Arg_5.6 = f64[64,64,64]{2,1,0} parameter(5)
+  Arg_6.7 = f64[64,64,64]{2,1,0} parameter(6)
+  Arg_7.8 = f64[64,64,64]{2,1,0} parameter(7)
+  Arg_8.9 = f64[] parameter(8)
+  Arg_9.10 = s64[] parameter(9)
+  tuple.12 = (s64[], f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], /*index=10*/s64[]) tuple(constant.11, Arg_0.1, Arg_1.2, Arg_2.3, Arg_3.4, Arg_4.5, Arg_5.6, Arg_6.7, Arg_7.8, Arg_8.9, Arg_9.10)
+  while.1788 = (s64[], f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], /*index=10*/s64[]) while(tuple.12), condition=region_20.1773, body=region_0.1746
+  get-tuple-element.1789 = s64[] get-tuple-element(while.1788), index=0
+  get-tuple-element.1790 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=1
+  get-tuple-element.1791 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=2
+  get-tuple-element.1792 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=3
+  get-tuple-element.1793 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=4
+  get-tuple-element.1794 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=5
+  get-tuple-element.1795 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=6
+  get-tuple-element.1796 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=7
+  get-tuple-element.1797 = f64[64,64,64]{2,1,0} get-tuple-element(while.1788), index=8
+  get-tuple-element.1798 = f64[] get-tuple-element(while.1788), index=9
+  get-tuple-element.1799 = s64[] get-tuple-element(while.1788), index=10
+  ROOT tuple.1800 = (f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, /*index=5*/f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[64,64,64]{2,1,0}, f64[], s64[]) tuple(get-tuple-element.1790, get-tuple-element.1791, get-tuple-element.1792, get-tuple-element.1793, get-tuple-element.1794, get-tuple-element.1795, get-tuple-element.1796, get-tuple-element.1797, get-tuple-element.1798, get-tuple-element.1799)
+}
+
