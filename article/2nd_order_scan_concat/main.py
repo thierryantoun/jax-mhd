@@ -96,7 +96,7 @@ def main(args, config):
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
         Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
-        Mass, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz = update(
+        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
             Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
         )
         t += dt
