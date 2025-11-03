@@ -7,7 +7,8 @@ from physics import get_primitive
 def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
     
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(rho, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
-        
+    
+    @jax.jit
     def minmod_1D(v_l, v_c, v_r):
         dlft = v_c - v_l
         drgt = v_r - v_c
@@ -16,7 +17,8 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         slop = jnp.minimum(jnp.abs(dlft), jnp.abs(drgt))
         dlim = jnp.where(dlft * drgt < 0, 0.0, slop)
         return dsgn * jnp.minimum(jnp.abs(dcen), dlim)
-
+    
+    @jax.jit
     def get_gradient(f):
         """Calculate the gradients of a field"""
         f_dx = minmod_1D(jnp.roll(f, 1, axis=0), f, jnp.roll(f, -1, axis=0))
@@ -24,6 +26,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
         return f_dx, f_dy, f_dz
     
+    @jax.jit
     def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
         f_XR, f_XL = f + f_dx * dx / 2, jnp.roll(f - f_dx * dx / 2, 1, axis=0)
         f_YR, f_YL = f + f_dy * dy / 2, jnp.roll(f - f_dy * dy / 2, 1, axis=1)
@@ -72,6 +75,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     grad_Bz = jnp.stack([Bz_dx,  Bz_dy,  Bz_dz ], axis=0)
     B_dz = jnp.stack([Bx_dz,  By_dz,  Bz_dz ], axis=0)
     
+    @jax.jit
     def dot(a, b):
         return jnp.sum(a * b, axis=0)
     
@@ -95,6 +99,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     By_XL,  By_XR,  By_YL,  By_YR,  By_ZL,  By_ZR  = extrapolate_to_face(By_prime,  By_dx,  By_dy,  By_dz,  dx, dy, dz)
     Bz_XL,  Bz_XR,  Bz_YL,  Bz_YR,  Bz_ZL,  Bz_ZR  = extrapolate_to_face(Bz_prime,  Bz_dx,  Bz_dy,  Bz_dz,  dx, dy, dz)
 
+    @jax.jit
     def get_flux(rho_L, rho_R, vx_L, vx_R, vy_L, vy_R, vz_L, vz_R, P_L, P_R, gamma, Bx_L, Bx_R, By_L, By_R, Bz_L, Bz_R):
         """Calculate fluxes between 2 states with local Lax-Friedrichs/Rusanov rule"""
 
@@ -200,6 +205,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     sz = dt / dz
     
     # chaque variable a ses flux propres, batch les opérations ici ne sert à rien
+    @jax.jit
     def apply_fluxes(F, flux_F_X, flux_F_Y, flux_F_Z, dx, dy, dz, dt):
         F += sx * flux_F_X
         F += - sx * jnp.roll(flux_F_X, -1, axis=0)
