@@ -221,4 +221,4 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     By = apply_fluxes(By, flux_By_X, flux_By_Y, flux_By_Z, dx, dy, dz, dt)
     Bz = apply_fluxes(Bz, flux_Bz_X, flux_Bz_Y, flux_Bz_Z, dx, dy, dz, dt)                                                             
 
-    return rho, Momx, Momy, Momz, Energy, dt, rho, Bx, By, Bz
+    return rho, Momx, Momy, Momz, Energy, dt, Bx, By, Bz
