@@ -3,7 +3,6 @@ import jax.numpy as jnp
 from physics import get_primitive
 # from jaxpr import examine_jaxpr
 
-@jax.jit
 def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
     
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(rho, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
@@ -18,13 +17,16 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         dlim = jnp.where(dlft * drgt < 0, 0.0, slop)
         return dsgn * jnp.minimum(jnp.abs(dcen), dlim)
     
-    @jax.jit
     def get_gradient(f):
         """Calculate the gradients of a field"""
         f_dx = minmod_1D(jnp.roll(f, 1, axis=0), f, jnp.roll(f, -1, axis=0))
         f_dy = minmod_1D(jnp.roll(f, 1, axis=1), f, jnp.roll(f, -1, axis=1))
         f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
         return f_dx, f_dy, f_dz
+    
+    lowered = jax.jit(get_gradient).lower(rho)
+    hlo = lowered.compiler_ir(dialect="hlo")
+    print(hlo.as_hlo_text())
     
     @jax.jit
     def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):
