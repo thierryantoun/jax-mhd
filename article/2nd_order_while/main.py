@@ -94,7 +94,7 @@ def main(args, config):
     mcups = (Nx*Ny*Nz * n_iter) / (1e6 * total_time)
     nvar = 8
     sizeof_double = 8
-    SoL = (Nx * Ny * Nz * nvar * sizeof_double) / (total_time * 1e9)
+    SoL = (2 * Nx * Ny * Nz * nvar * sizeof_double) / (total_time * 1e9)
 
     print(f"\nSimulation complete after {n_iter} iterations")
     print(f"Total runtime: {total_time:.2f} seconds")
