@@ -116,12 +116,16 @@ def main(args, config):
     n_iter  = int(final_state[9])
     total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
+    nvar = 8
+    sizeof_double = 8
+    SoL = (Nx * Ny * Nz * nvar * sizeof_double) / (total_time * 1e9)
     
     print("\nSimulation complete")
     print(f"Final time reached: {float(t_final):.4f}")
     print("nb_iterations:", n_iter)
     print(f"Total runtime: {total_time:.2f} seconds")
     print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
+    print(f"Performance: {SoL:.2f} GB/s (SoL)")
     
 
 if __name__ == "__main__":
