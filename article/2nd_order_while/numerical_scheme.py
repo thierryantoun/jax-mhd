@@ -24,9 +24,6 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         f_dz = minmod_1D(jnp.roll(f, 1, axis=2), f, jnp.roll(f, -1, axis=2))
         return f_dx, f_dy, f_dz
     
-    lowered = jax.jit(get_gradient).lower(rho)
-    hlo = lowered.compiler_ir(dialect="hlo")
-    print(hlo.as_hlo_text())
     
     @jax.jit
     def extrapolate_to_face(f, f_dx, f_dy, f_dz, dx, dy, dz):

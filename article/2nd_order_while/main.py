@@ -76,7 +76,7 @@ def main(args, config):
     output_counter = 0
     n_iter = 0
 
-    while t < t_stop:
+    for t in range(1):
 
         step_start = time.time()
         # Time step
@@ -104,5 +104,5 @@ def main(args, config):
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
-    ms = jax.devices("gpu")[0].memory_stats()
-    print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
+    # ms = jax.devices("gpu")[0].memory_stats()
+    # print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
