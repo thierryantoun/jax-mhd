@@ -16,6 +16,13 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
         slop = jnp.minimum(jnp.abs(dlft), jnp.abs(drgt))
         dlim = jnp.where(dlft * drgt < 0, 0.0, slop)
         return dsgn * jnp.minimum(jnp.abs(dcen), dlim)
+    
+    def flop_burn(x, n=32):
+        for _ in range(n):
+            x = x * 1.0000001 + 1.0
+        return x
+    
+    rho = flop_burn(rho)
 
     def get_gradient(f):
         """Calculate the gradients of a field"""
