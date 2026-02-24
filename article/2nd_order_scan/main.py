@@ -6,6 +6,7 @@ import jax
 from functools import partial
 from pathlib import Path, PurePath
 import json
+import nvtx
 
 from modules import *
 from numerical_scheme import *
@@ -103,11 +104,12 @@ def main(args, config):
         count += 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
-    global_start = time.time()
-    final_state, _ = jax.lax.scan(
-        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-        initial_state, None, length=max_steps
-    )
+    with nvtx.annotate(f"lax.scan max_steps={max_steps}", color="blue"):
+        global_start = time.time()
+        final_state, _ = jax.lax.scan(
+            lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+            initial_state, None, length=max_steps
+        )
     jax.block_until_ready(final_state)
     global_end = time.time()
 
