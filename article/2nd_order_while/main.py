@@ -20,15 +20,20 @@ from jax.sharding import Mesh, PartitionSpec, NamedSharding
 def main(args, config):
     USE_CPU_ONLY = args.cpu
 
-    flags = os.environ.get("XLA_FLAGS", "")
+    flags = os.environ.get("XLA_FLAGS", "").strip()
+
     if USE_CPU_ONLY:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
     else:
-        flags += (
+        extra = (
             "--xla_gpu_triton_gemm_any=false "
             "--xla_gpu_enable_latency_hiding_scheduler=true "
             "--xla_gpu_enable_highest_priority_async_stream=true "
         )
+        if flags:
+            flags += " "
+        flags += extra
+
     os.environ["XLA_FLAGS"] = flags
 
     IC = config["simulation"]["IC"]
@@ -56,15 +61,6 @@ def main(args, config):
     ylin = jnp.linspace(0.5 * dy, boxsize - 0.5 * dy, Ny)
     zlin = jnp.linspace(0.5 * dz, boxsize - 0.5 * dz, Nz)
     X, Y, Z = jnp.meshgrid(xlin, ylin, zlin, indexing="ij")
-
-    n_devices = jax.device_count()
-    x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
-    mesh = Mesh(mesh_utils.create_device_mesh((x_opt, y_opt, z_opt)), ("x", "y", "z"))
-    sharding = NamedSharding(mesh, PartitionSpec("x", "y", "z"))
-
-    X = jax.lax.with_sharding_constraint(X, sharding)
-    Y = jax.lax.with_sharding_constraint(Y, sharding)
-    Z = jax.lax.with_sharding_constraint(Z, sharding)
 
     # Initial conditions
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
