@@ -92,7 +92,7 @@ def main(args, config):
 
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
 
-    max_steps = 5
+    max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
 
     def body_fun(state, _):
         Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
