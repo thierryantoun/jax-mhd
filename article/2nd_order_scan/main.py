@@ -112,13 +112,12 @@ def main(args, config):
 
     global_start = time.time()
     
-    range_id = nvtx.start_range(message=f"scan max_steps={max_steps}")
-    final_state, _ = jax.lax.scan(
-            lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-            initial_state, None, length=max_steps
-        )
-    jax.block_until_ready(final_state)
-    nvtx.end_range(range_id)
+    with nvtx.annotate("PROFILE_SCAN"):
+        final_state, _ = jax.lax.scan(
+                lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+                initial_state, None, length=max_steps
+            )
+        jax.block_until_ready(final_state)
     
     global_end = time.time()
 
