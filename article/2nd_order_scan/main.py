@@ -103,6 +103,12 @@ def main(args, config):
         t += dt
         count += 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+    
+    warm_state, _ = jax.lax.scan(
+        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+        initial_state, None, length=max_steps
+        )
+    jax.block_until_ready(warm_state)
 
     with nvtx.annotate(f"lax.scan max_steps={max_steps}", color="blue"):
         global_start = time.time()
