@@ -6,6 +6,7 @@ import jax
 from functools import partial
 from pathlib import Path, PurePath
 import json
+import nvtx
 
 from modules import *
 from numerical_scheme import *
@@ -104,16 +105,23 @@ def main(args, config):
         Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
             Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
         )
-        t += dt
-        count += 1
+        t = t + dt
+        count = count + 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
+    # ---- body_fun defined once (avoid recompiles due to new lambdas) ----
+    def body_fun(state, _):
+        return scan_step(state, _, dx=dx, dy=dy, dz=dz, gamma=gamma, courant_fac=courant_fac)
+
+    # ---- warmup: compile + one execution (OUTSIDE NVTX) ----
+    warm_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
+    jax.block_until_ready(warm_state)
+
+    # ---- profiling run (INSIDE NVTX) ----
     global_start = time.time()
-    final_state, _ = jax.lax.scan(
-        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-        initial_state, None, length=max_steps
-    )
-    jax.block_until_ready(final_state)
+    with nvtx.annotate("PROFILE_NCU"):
+        final_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
+        jax.block_until_ready(final_state)
     global_end = time.time()
 
     # KPIs temporels
