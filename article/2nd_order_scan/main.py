@@ -92,7 +92,7 @@ def main(args, config):
 
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
 
-    max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
+    max_steps = 5
 
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
