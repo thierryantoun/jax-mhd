@@ -110,13 +110,16 @@ def main(args, config):
         )
     jax.block_until_ready(warm_state)
 
-    with nvtx.annotate(f"lax.scan max_steps={max_steps}", color="blue"):
-        global_start = time.time()
-        final_state, _ = jax.lax.scan(
+    global_start = time.time()
+    
+    range_id = nvtx.start_range(message=f"scan max_steps={max_steps}")
+    final_state, _ = jax.lax.scan(
             lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
             initial_state, None, length=max_steps
         )
     jax.block_until_ready(final_state)
+    nvtx.end_range(range_id)
+    
     global_end = time.time()
 
     # KPIs temporels
