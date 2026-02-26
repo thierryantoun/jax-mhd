@@ -97,7 +97,7 @@ def main(args, config):
 
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
 
-    max_steps = 5
+    max_steps = 50
 
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
@@ -118,10 +118,9 @@ def main(args, config):
 
     # profiling run INSIDE NVTX start/end range
     global_start = time.time()
-    rid = nvtx.start_range(message="PROFILE_NCU")
-    final_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
-    jax.block_until_ready(final_state)
-    nvtx.end_range(rid)
+    with nvtx.annotate("PROFILE_NCU", color="blue"):
+        final_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
+        jax.block_until_ready(final_state)
     global_end = time.time()
 
     # KPIs temporels
@@ -144,5 +143,7 @@ def main(args, config):
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
+    from jax import lib
+    lib.xla_bridge.get_backend().synchronize_all_activity()
     ms = jax.devices("gpu")[0].memory_stats()
     print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
