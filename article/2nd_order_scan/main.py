@@ -143,7 +143,5 @@ def main(args, config):
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
-    from jax import lib
-    lib.xla_bridge.get_backend().synchronize_all_activity()
     ms = jax.devices("gpu")[0].memory_stats()
     print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
