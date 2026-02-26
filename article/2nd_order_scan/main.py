@@ -118,9 +118,10 @@ def main(args, config):
 
     # profiling run INSIDE NVTX start/end range
     global_start = time.time()
-    with nvtx.annotate("PROFILE_NCU", color="blue"):
-        final_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
-        jax.block_until_ready(final_state)
+    rid = nvtx.start_range(message="PROFILE_NCU")
+    final_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
+    jax.block_until_ready(final_state)
+    nvtx.end_range(rid)
     global_end = time.time()
 
     # KPIs temporels
