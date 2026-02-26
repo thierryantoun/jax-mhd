@@ -1,6 +1,5 @@
 import jax
 import jax.numpy as jnp
-import nvtx
 from physics import get_primitive
 
 @jax.jit
@@ -44,12 +43,7 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     val_max = jnp.maximum(jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)), cmfz + jnp.abs(vz))
     dt = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
     
-    with nvtx.annotate("get_gradient_stack", color="red"):
-        Ux, Uy, Uz = get_gradient(U_primitive)
-        Ux.block_until_ready()
-        Uy.block_until_ready()  
-        Uz.block_until_ready()
-        
+    Ux, Uy, Uz = get_gradient(U_primitive)
     rho_dx, P_dx,  vx_dx, vy_dx, vz_dx, Bx_dx, By_dx, Bz_dx = Ux
     rho_dy, P_dy,  vx_dy, vy_dy, vz_dy, Bx_dy, By_dy, Bz_dy = Uy
     rho_dz, P_dz,  vx_dz, vy_dz, vz_dz, Bx_dz, By_dz, Bz_dz = Uz
