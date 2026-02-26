@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import nvtx
 from physics import get_primitive
 
+@jax.jit
 def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz):
     
     rho, vx, vy, vz, P, Bx, By, Bz = get_primitive(rho, Momx, Momy, Momz, Energy, gamma, Bx, By, Bz)
@@ -227,15 +228,3 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     Bz = apply_fluxes(Bz, flux_Bz_X, flux_Bz_Y, flux_Bz_Z, dx, dy, dz, dt)                                                             
 
     return rho, Momx, Momy, Momz, Energy, dt, Bx, By, Bz
-
-update_jit = jax.jit(update)
-
-def update_profiled(*args):
-    # Warmup hors zone NVTX pour éviter de mesurer la compilation
-    out = update_jit(*args)
-    jax.block_until_ready(out)
-
-    # Mesure
-    with nvtx.annotate("update", color="red"):
-        out = update_jit(*args)
-        return jax.block_until_ready(out)
