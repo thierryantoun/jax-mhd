@@ -1,59 +1,21 @@
-# main.py
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 import os
 import time
 import jax
-import jax.numpy as jnp
 from functools import partial
+from pathlib import Path, PurePath
+import json
+
+from modules import *
+from numerical_scheme import *
+from initial_conditions import *
+from repartition_gpu import *
+from load_config import *
+from physics import *
 
 from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
-
-from load_config import load_config_and_args
-from repartition_gpu import optimal_3d_partition
-from initial_conditions import inital_condition
-from physics import get_conserved
-
-from numerical_scheme import update_jit
-
-# ----------------------------
-# Profiling helper (host NVTX)
-# ----------------------------
-def run_profile_loop(initial_state, dx, dy, dz, gamma, courant_fac, n_warmup=5, n_profile=3):
-    import nvtx  # import here so normal runs don't require nvtx installed
-
-    state = initial_state
-
-    # Warmup: compile + stabilize (OUT of NVTX)
-    for _ in range(n_warmup):
-        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
-        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update_jit(
-            Mass, Momx, Momy, Momz, Energy,
-            dx=dx, dy=dy, dz=dz, gamma=gamma, courant_fac=courant_fac,
-            Bx=Bx, By=By, Bz=Bz
-        )
-        t = t + dt
-        count = count + 1
-        state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count)
-        jax.block_until_ready(state)  # force GPU completion outside measured region
-
-    # Profile: NVTX around steady-state iterations
-    for i in range(n_profile):
-        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
-        with nvtx.annotate(f"update_step_{i}", color="red"):
-            Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update_jit(
-                Mass, Momx, Momy, Momz, Energy,
-                dx=dx, dy=dy, dz=dz, gamma=gamma, courant_fac=courant_fac,
-                Bx=Bx, By=By, Bz=Bz
-            )
-            t = t + dt
-            count = count + 1
-            state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count)
-            jax.block_until_ready(state)  # ensure kernels land inside NVTX
-    return state
-
 
 def main(args, config):
     USE_CPU_ONLY = args.cpu
@@ -82,10 +44,8 @@ def main(args, config):
     if use_double:
         print("Using double precision")
         jax.config.update("jax_enable_x64", True)
-        sizeof_float = 8
     else:
         print("Using single precision")
-        sizeof_float = 4
 
     dx = boxsize / Nx
     dy = boxsize / Ny
@@ -97,7 +57,6 @@ def main(args, config):
     zlin = jnp.linspace(0.5 * dz, boxsize - 0.5 * dz, Nz)
     X, Y, Z = jnp.meshgrid(xlin, ylin, zlin, indexing="ij")
 
-    # Sharding (as you had)
     n_devices = jax.device_count()
     x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
     mesh = Mesh(mesh_utils.create_device_mesh((x_opt, y_opt, z_opt)), ("x", "y", "z"))
@@ -114,7 +73,7 @@ def main(args, config):
     # Initial state
     initial_state = (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, jnp.array(0.0), jnp.array(0))
 
-    # Estimate max_steps conservatively (same as yours)
+    # Estimate max_steps conservatively
     c02 = gamma * P / rho
     ca2 = (Bx**2 + By**2 + Bz**2) / rho
     cap2x = Bx**2 / rho
@@ -125,88 +84,52 @@ def main(args, config):
     cmfy = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2y))
     cmfz = jnp.sqrt(0.5*(c02 + ca2) + 0.5*jnp.sqrt((c02 + ca2)**2 - 4*c02*cap2z))
 
-    val_max = jnp.maximum(jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)), cmfz + jnp.abs(vz))
+    val_max = jnp.maximum(
+        jnp.maximum(cmfx + jnp.abs(vx), cmfy + jnp.abs(vy)),
+        cmfz + jnp.abs(vz)
+    )
+
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
+
     max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
 
-    # ----------------------------
-    # Two modes:
-    #  - normal: JIT scan (best end-to-end perf)
-    #  - profile: host loop + NVTX (best attribution)
-    # ----------------------------
-    if getattr(args, "profile", False):
-        print("\n[PROFILE MODE] Host loop + NVTX regions (use nsys --trace=cuda,nvtx)")
-        global_start = time.time()
-        final_state = run_profile_loop(
-            initial_state, dx, dy, dz, gamma, courant_fac,
-            n_warmup=getattr(args, "warmup", 5),
-            n_profile=getattr(args, "profile_steps", 3),
-        )
-        jax.block_until_ready(final_state)
-        global_end = time.time()
-
-        # KPIs on the profiled loop count
-        t_final = float(final_state[8])
-        n_iter = int(final_state[9])
-        total_time = global_end - global_start
-        mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
-        nvar = 8
-        SoL = (2 * Nx * Ny * Nz * nvar * sizeof_float) / (total_time * 1e9)
-
-        print("\nProfile run complete")
-        print(f"Final time reached: {t_final:.4f}")
-        print("nb_iterations:", n_iter)
-        print(f"Total runtime: {total_time:.2f} seconds")
-        print(f"Performance: {mcups:.2f} MCUPS")
-        print(f"Performance: {SoL:.2f} GB/s (SoL)")
-        return
-
-    # Normal mode: scan (fast)
-    @partial(jax.jit, static_argnames=("dx", "dy", "dz", "gamma", "courant_fac"))
+    @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
         Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
         Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update_jit(
-            Mass, Momx, Momy, Momz, Energy,
-            dx=dx, dy=dy, dz=dz, gamma=gamma, courant_fac=courant_fac,
-            Bx=Bx, By=By, Bz=Bz
+            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
         )
-        t = t + dt
-        count = count + 1
+        t += dt
+        count += 1
         return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
     global_start = time.time()
     final_state, _ = jax.lax.scan(
         lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-        initial_state,
-        xs=None,
-        length=max_steps
+        initial_state, None, length=max_steps
     )
     jax.block_until_ready(final_state)
     global_end = time.time()
 
-    # KPIs
-    t_final = float(final_state[8])
-    n_iter = int(final_state[9])
+    # KPIs temporels
+    t_final = final_state[8]
+    n_iter  = int(final_state[9])
     total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
     nvar = 8
-    SoL = (2 * Nx * Ny * Nz * nvar * sizeof_float) / (total_time * 1e9)
-
+    sizeof_double = 8
+    SoL = (2 * Nx * Ny * Nz * nvar * sizeof_double) / (total_time * 1e9)
+    
     print("\nSimulation complete")
-    print(f"Final time reached: {t_final:.4f}")
+    print(f"Final time reached: {float(t_final):.4f}")
     print("nb_iterations:", n_iter)
     print(f"Total runtime: {total_time:.2f} seconds")
-    print(f"Performance: {mcups:.2f} MCUPS")
+    print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
     print(f"Performance: {SoL:.2f} GB/s (SoL)")
-
+    
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
-
-    # If your current arg parser doesn't include these, add them there:
-    # --profile           : enable profile mode
-    # --warmup N          : warmup iterations (default 5)
-    # --profile-steps N   : profiled iterations (default 3)
-    #
-    # This code assumes args.profile / args.warmup / args.profile_steps may exist.
     main(args, config)
+    # ms = jax.devices("gpu")[0].memory_stats()
+    # print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
