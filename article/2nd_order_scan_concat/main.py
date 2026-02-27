@@ -95,25 +95,66 @@ def main(args, config):
 
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
-        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
-        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+
+        with jax.profiler.TraceAnnotation("update"):
+            Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
+
+            Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+                Mass, Momx, Momy, Momz, Energy,
+                dx, dy, dz, gamma, courant_fac,
+                Bx, By, Bz
+            )
+
+            t += dt
+            count += 1
+
+            return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+
+
+    # JIT le scan complet (IMPORTANT)
+    @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac", "max_steps"])
+    def run_simulation(initial_state, dx, dy, dz, gamma, courant_fac, max_steps):
+
+        return jax.lax.scan(
+            lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+            initial_state,
+            None,
+            length=max_steps
         )
-        t += dt
-        count += 1
-        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+
+
+    # -------------------------
+    # WARMUP (compile seulement)
+    # -------------------------
+
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    )
+
+    jax.block_until_ready(state)
+    
+    # PROFILING
+    
+    jax.profiler.start_trace("/tmp/jax-trace")
 
     global_start = time.time()
-    final_state, _ = jax.lax.scan(
-        lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-        initial_state, None, length=max_steps
+
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
     )
-    jax.block_until_ready(final_state)
+
+    jax.block_until_ready(state)
+
+    global_end = time.time()
+
+    jax.profiler.stop_trace()
+
+    print("Execution time:", global_end - global_start)
     global_end = time.time()
 
     # KPIs temporels
-    t_final = final_state[8]
-    n_iter  = int(final_state[9])
+    t_final = state[8]
+    n_iter  = int(state[9])
     total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
     nvar = 8
