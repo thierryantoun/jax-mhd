@@ -6,7 +6,6 @@ import jax
 from functools import partial
 from pathlib import Path, PurePath
 import json
-import nvtx
 
 from modules import *
 from numerical_scheme import *
@@ -21,21 +20,16 @@ from jax.sharding import Mesh, PartitionSpec, NamedSharding
 def main(args, config):
     USE_CPU_ONLY = args.cpu
 
-    flags = os.environ.get("XLA_FLAGS", "").split()
-
-    def add_flag(f):
-        if f not in flags:
-            flags.append(f)
-
+    flags = os.environ.get("XLA_FLAGS", "")
     if USE_CPU_ONLY:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
     else:
-        add_flag("--xla_gpu_triton_gemm_any=false")
-        add_flag("--xla_gpu_enable_latency_hiding_scheduler=true")
-        add_flag("--xla_gpu_enable_highest_priority_async_stream=true")
-
-    os.environ["XLA_FLAGS"] = " ".join(flags)
-    print("XLA_FLAGS =", os.environ["XLA_FLAGS"])
+        flags += (
+            "--xla_gpu_triton_gemm_any=false "
+            "--xla_gpu_enable_latency_hiding_scheduler=true "
+            "--xla_gpu_enable_highest_priority_async_stream=true "
+        )
+    os.environ["XLA_FLAGS"] = flags
 
     IC = config["simulation"]["IC"]
     Nx = int(config["simulation"]["resolution_x"])
@@ -97,36 +91,70 @@ def main(args, config):
 
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
 
-    max_steps = 50
+    max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
 
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
-        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
-        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+
+        with jax.profiler.TraceAnnotation("update"):
+            Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
+
+            Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+                Mass, Momx, Momy, Momz, Energy,
+                dx, dy, dz, gamma, courant_fac,
+                Bx, By, Bz
+            )
+
+            t += dt
+            count += 1
+
+            return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+
+
+    # JIT le scan complet (IMPORTANT)
+    @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac", "max_steps"])
+    def run_simulation(initial_state, dx, dy, dz, gamma, courant_fac, max_steps):
+
+        return jax.lax.scan(
+            lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+            initial_state,
+            None,
+            length=max_steps
         )
-        t = t + dt
-        count = count + 1
-        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
-    def body_fun(state, _):
-        return scan_step(state, _, dx=dx, dy=dy, dz=dz, gamma=gamma, courant_fac=courant_fac)
 
-    # warmup (compile + run) OUTSIDE NVTX
-    warm_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
-    jax.block_until_ready(warm_state)
+    # -------------------------
+    # WARMUP (compile seulement)
+    # -------------------------
 
-    # profiling run INSIDE NVTX start/end range
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    )
+
+    jax.block_until_ready(state)
+    
+    # PROFILING
+    
+    jax.profiler.start_trace("/tmp/jax-trace")
+
     global_start = time.time()
-    rid = nvtx.start_range(message="PROFILE_NCU")
-    final_state, _ = jax.lax.scan(body_fun, initial_state, xs=None, length=max_steps)
-    jax.block_until_ready(final_state)
-    nvtx.end_range(rid)
+
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    )
+
+    jax.block_until_ready(state)
+
+    global_end = time.time()
+
+    jax.profiler.stop_trace()
+
+    print("Execution time:", global_end - global_start)
     global_end = time.time()
 
     # KPIs temporels
-    t_final = final_state[8]
-    n_iter  = int(final_state[9])
+    t_final = state[8]
+    n_iter  = int(state[9])
     total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
     nvar = 8
@@ -144,5 +172,5 @@ def main(args, config):
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
-    ms = jax.devices("gpu")[0].memory_stats()
-    print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
+    # ms = jax.devices("gpu")[0].memory_stats()
+    # print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
