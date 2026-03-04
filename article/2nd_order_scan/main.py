@@ -18,18 +18,6 @@ from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
 
 def main(args, config):
-    USE_CPU_ONLY = args.cpu
-
-    flags = os.environ.get("XLA_FLAGS", "")
-    if USE_CPU_ONLY:
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    else:
-        flags += (
-            "--xla_gpu_triton_gemm_any=false "
-            "--xla_gpu_enable_latency_hiding_scheduler=true "
-            "--xla_gpu_enable_highest_priority_async_stream=true "
-        )
-    os.environ["XLA_FLAGS"] = flags
 
     IC = config["simulation"]["IC"]
     Nx = int(config["simulation"]["resolution_x"])
@@ -127,15 +115,15 @@ def main(args, config):
     # WARMUP (compile seulement)
     # -------------------------
 
-    state, _ = run_simulation(
-        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
-    )
+    # state, _ = run_simulation(
+    #     initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    # )
 
-    jax.block_until_ready(state)
+    # jax.block_until_ready(state)
     
     # PROFILING
     
-    jax.profiler.start_trace("/tmp/jax-trace")
+    # jax.profiler.start_trace("/tmp/jax-trace")
 
     global_start = time.time()
 
@@ -147,7 +135,7 @@ def main(args, config):
 
     global_end = time.time()
 
-    jax.profiler.stop_trace()
+    # jax.profiler.stop_trace()
 
     print("Execution time:", global_end - global_start)
     global_end = time.time()

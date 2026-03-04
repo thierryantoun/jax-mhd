@@ -20,17 +20,6 @@ from jax.sharding import Mesh, PartitionSpec, NamedSharding
 def main(args, config):
     USE_CPU_ONLY = args.cpu
 
-    flags = os.environ.get("XLA_FLAGS", "")
-    if USE_CPU_ONLY:
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    else:
-        flags += (
-            "--xla_gpu_triton_gemm_any=false "
-            "--xla_gpu_enable_latency_hiding_scheduler=true "
-            "--xla_gpu_enable_highest_priority_async_stream=true "
-        )
-    os.environ["XLA_FLAGS"] = flags
-
     IC = config["simulation"]["IC"]
     Nx = int(config["simulation"]["resolution_x"])
     Ny = int(config["simulation"]["resolution_y"])
