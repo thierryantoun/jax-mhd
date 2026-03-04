@@ -116,15 +116,15 @@ def main(args, config):
     # WARMUP (compile seulement)
     # -------------------------
 
-    # state, _ = run_simulation(
-    #     initial_state, dx, dy, dz, gamma, courant_fac, max_steps
-    # )
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    )
 
-    # jax.block_until_ready(state)
+    jax.block_until_ready(state)
     
     # PROFILING
     
-    # jax.profiler.start_trace("/tmp/jax-trace")
+    jax.profiler.start_trace("/tmp/jax-trace")
 
     global_start = time.time()
 
@@ -136,7 +136,7 @@ def main(args, config):
 
     global_end = time.time()
 
-    # jax.profiler.stop_trace()
+    jax.profiler.stop_trace()
 
     print("Execution time:", global_end - global_start)
     global_end = time.time()
