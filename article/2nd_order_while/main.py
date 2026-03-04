@@ -17,24 +17,8 @@ from physics import *
 from jax.experimental import mesh_utils
 from jax.sharding import Mesh, PartitionSpec, NamedSharding
 
+
 def main(args, config):
-    USE_CPU_ONLY = args.cpu
-
-    flags = os.environ.get("XLA_FLAGS", "").strip()
-
-    if USE_CPU_ONLY:
-        os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    else:
-        extra = (
-            "--xla_gpu_triton_gemm_any=false "
-            "--xla_gpu_enable_latency_hiding_scheduler=true "
-            "--xla_gpu_enable_highest_priority_async_stream=true "
-        )
-        if flags:
-            flags += " "
-        flags += extra
-
-    os.environ["XLA_FLAGS"] = flags
 
     IC = config["simulation"]["IC"]
     Nx = int(config["simulation"]["resolution_x"])
@@ -62,40 +46,71 @@ def main(args, config):
     zlin = jnp.linspace(0.5 * dz, boxsize - 0.5 * dz, Nz)
     X, Y, Z = jnp.meshgrid(xlin, ylin, zlin, indexing="ij")
 
+    n_devices = jax.device_count()
+    x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
+    mesh = Mesh(mesh_utils.create_device_mesh((x_opt, y_opt, z_opt)), ("x", "y", "z"))
+    sharding = NamedSharding(mesh, PartitionSpec("x", "y", "z"))
+
+    X = jax.lax.with_sharding_constraint(X, sharding)
+    Y = jax.lax.with_sharding_constraint(Y, sharding)
+    Z = jax.lax.with_sharding_constraint(Z, sharding)
+
     # Initial conditions
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
     Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = get_conserved(rho, vx, vy, vz, P, gamma, Bx, By, Bz)
 
+    # -------------------------
+    # WARMUP (compile seulement)
+    # -------------------------
+    print("Warmup (JIT compilation)...")
+    Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+        Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+    )
+    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
+
+    # Reset initial conditions après le warmup
+    rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
+    Mass, Momx, Momy, Momz, Energy, Bx, By, Bz = get_conserved(rho, vx, vy, vz, P, gamma, Bx, By, Bz)
+
+    # -------------------------
+    # PROFILING
+    # -------------------------
+    jax.profiler.start_trace("/tmp/while-trace")
+
     global_start = time.time()
-    tic = time.time()
-    t = 0
-    output_counter = 0
+
+    t = 0.0
     n_iter = 0
 
-    for t in range(1):
+    while t < t_stop:
 
-        step_start = time.time()
-        # Time step
-        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
-        )
+        with jax.profiler.TraceAnnotation("update"):
+            Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+                Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+            )
+
         t += dt
         n_iter += 1
-        
 
-    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
-    # KPIs temporels
+        jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
+
     global_end = time.time()
+
+    jax.profiler.stop_trace()
+
+    # KPIs
     total_time = global_end - global_start
-    mcups = (Nx*Ny*Nz * n_iter) / (1e6 * total_time)
+    mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
     nvar = 8
     sizeof_double = 8
     SoL = (2 * Nx * Ny * Nz * nvar * sizeof_double) / (total_time * 1e9)
 
     print(f"\nSimulation complete after {n_iter} iterations")
+    print(f"Final time reached: {t:.4f}")
     print(f"Total runtime: {total_time:.2f} seconds")
     print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
     print(f"Performance: {SoL:.2f} GB/s (SoL)")
+
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
