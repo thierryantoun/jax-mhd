@@ -111,26 +111,39 @@ def main(args, config):
         )
 
 
-    # Trace + lower (gratuit, pas de compilation)
-    lowered = run_simulation.lower(initial_state, dx, dy, dz, gamma, courant_fac, max_steps)
+    # -------------------------
+    # WARMUP (compile seulement)
+    # -------------------------
 
-    # Compilation seule
-    t0 = time.time()
-    compiled = lowered.compile()
-    t_compil = time.time() - t0
-    print(f"Compilation XLA : {t_compil:.2f}s")
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    )
 
-    # Exécution seule
-    t0 = time.time()
-    state, _ = compiled(initial_state)
     jax.block_until_ready(state)
-    t_run = time.time() - t0
-    print(f"Exécution       : {t_run:.2f}s")
+
+    # PROFILING
+    
+    jax.profiler.start_trace("/tmp/jax-trace")
+
+    global_start = time.time()
+
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    )
+
+    jax.block_until_ready(state)
+
+    global_end = time.time()
+
+    jax.profiler.stop_trace()
+
+    print("Execution time:", global_end - global_start)
+    global_end = time.time()
 
     # KPIs temporels
     t_final = state[8]
     n_iter  = int(state[9])
-    total_time = t_run + t_compil
+    total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
     nvar = 8
     sizeof_double = 8
