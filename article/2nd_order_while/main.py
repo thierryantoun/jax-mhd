@@ -75,7 +75,7 @@ def main(args, config):
     # -------------------------
     # PROFILING
     # -------------------------
-    # jax.profiler.start_trace("/tmp/jax-trace")
+    jax.profiler.start_trace("/tmp/jax-trace")
 
     global_start = time.time()
 
@@ -96,7 +96,7 @@ def main(args, config):
 
     global_end = time.time()
 
-    # jax.profiler.stop_trace()
+    jax.profiler.stop_trace()
 
     # KPIs
     total_time = global_end - global_start
