@@ -84,19 +84,18 @@ def main(args, config):
     @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
     def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
 
-        with jax.profiler.TraceAnnotation("update"):
-            Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
+        Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count = state
 
-            Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
-                Mass, Momx, Momy, Momz, Energy,
-                dx, dy, dz, gamma, courant_fac,
-                Bx, By, Bz
-            )
+        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+            Mass, Momx, Momy, Momz, Energy,
+            dx, dy, dz, gamma, courant_fac,
+            Bx, By, Bz
+        )
 
-            t += dt
-            count += 1
+        t += dt
+        count += 1
 
-            return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
+        return (Mass, Momx, Momy, Momz, Energy, Bx, By, Bz, t, count), None
 
 
     # JIT le scan complet (IMPORTANT)
@@ -123,7 +122,7 @@ def main(args, config):
 
     # PROFILING
     
-    jax.profiler.start_trace("/tmp/jax-trace")
+    # jax.profiler.start_trace("/tmp/jax-trace")
 
     global_start = time.time()
 
@@ -135,7 +134,7 @@ def main(args, config):
 
     global_end = time.time()
 
-    jax.profiler.stop_trace()
+    # jax.profiler.stop_trace()
 
     print("Execution time:", global_end - global_start)
     global_end = time.time()
