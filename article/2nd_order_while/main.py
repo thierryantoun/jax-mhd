@@ -76,30 +76,25 @@ def main(args, config):
     # PROFILING
     # -------------------------
 
-    jax.profiler.start_trace("/tmp/jax-trace")
+    # jax.profiler.start_trace("/tmp/jax-trace")
     global_start = time.time()
     t = 0.0
     n_iter = 0
-    trace_done = False
 
     while t < t_stop:
 
-        with jax.profiler.TraceAnnotation("update"):
-            Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
-                Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
-            )
+        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+        )
 
         t += dt
         n_iter += 1
-        jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
-
-        if n_iter == 15 and not trace_done:
-            jax.profiler.stop_trace()
-            trace_done = True
+    
+    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
 
     global_end = time.time()
 
-    jax.profiler.stop_trace()
+    # jax.profiler.stop_trace()
 
     # KPIs
     total_time = global_end - global_start
