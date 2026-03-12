@@ -81,17 +81,21 @@ def main(args, config):
     t = 0.0
     n_iter = 0
 
-    while t < t_stop:
+    jax.profiler.start_trace("/tmp/jax-trace")
 
-        Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
-            Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
-        )
+    while t < t_stop:
+        with jax.profiler.TraceAnnotation(f"step_{n_iter}"):
+            Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+                Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
+            )
+            jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
 
         t += dt
         n_iter += 1
-    
-    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
 
+    jax.profiler.stop_trace()
+
+    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
     global_end = time.time()
 
     # jax.profiler.stop_trace()
