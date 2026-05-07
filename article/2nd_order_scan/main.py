@@ -114,10 +114,14 @@ def main(args, config):
     # WARMUP (compile seulement)
     # -------------------------
 
-    state, _ = run_simulation(
+    t0 = time.perf_counter()
+    lowered = jax.jit(run_simulation, static_argnames=["dx","dy","dz","gamma","courant_fac","max_steps"]).lower(
         initial_state, dx, dy, dz, gamma, courant_fac, max_steps
     )
+    compiled = lowered.compile()
+    compile_time = time.perf_counter() - t0
 
+    state, _ = compiled(initial_state)
     jax.block_until_ready(state)
 
     # PROFILING
@@ -145,9 +149,14 @@ def main(args, config):
     total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
     
+    print("\nSimulation complete")
+    print(f"Final time reached: {float(t_final):.4f}")
+    print("nb_iterations:", n_iter)
+    print(f"Total runtime: {total_time:.2f} seconds")
+    print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
+    print(f"Compilation time: {compile_time:.2f} seconds")
+    
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
     main(args, config)
-    # ms = jax.devices("gpu")[0].memory_stats()
-    # print(f"\n[GPU memory] in use = {ms['bytes_in_use']/1e9:.2f} GB | peak = {ms['peak_bytes_in_use']/1e9:.2f} GB")
