@@ -62,11 +62,15 @@ def main(args, config):
     # -------------------------
     # WARMUP (compile seulement)
     # -------------------------
-    print("Warmup (JIT compilation)...")
-    Mass, Momx, Momy, Momz, Energy, dt, Bx, By, Bz = update(
+    t0 = time.perf_counter()
+    lowered = update.lower(
         Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz
     )
-    jax.block_until_ready((Mass, Momx, Momy, Momz, Energy, Bx, By, Bz))
+    compiled_update = lowered.compile()
+    compile_time = time.perf_counter() - t0
+
+    result = compiled_update(Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By, Bz)
+    jax.block_until_ready(result)
 
     # Reset initial conditions après le warmup
     rho, vx, vy, vz, Bx, By, Bz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
@@ -103,6 +107,13 @@ def main(args, config):
     # KPIs
     total_time = global_end - global_start
     mcups = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
+
+    print("\nSimulation complete")
+    print(f"Final time reached: {t:.4f}")
+    print("nb_iterations:", n_iter)
+    print(f"Total runtime: {total_time:.2f} seconds")
+    print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
+    print(f"Compilation time: {compile_time:.2f} seconds")
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
