@@ -68,67 +68,80 @@ def main(args, config):
     rho, vx, vy, vz, P = inital_condition(IC, X, Y, Z, gamma, boxsize)
     Mass, Momx, Momy, Momz, Energy = get_conserved(rho, vx, vy, vz, P, gamma)
 
-    # Initial state
+    # Initial state : (conserved vars..., t, count)
     initial_state = (Mass, Momx, Momy, Momz, Energy, jnp.array(0.0), jnp.array(0))
 
     # Estimate max_steps conservatively
     c02 = gamma * P / rho
-
     cmf = jnp.sqrt(c02)
-
     val_max = jnp.maximum(
         jnp.maximum(cmf + jnp.abs(vx), cmf + jnp.abs(vy)),
         cmf + jnp.abs(vz)
     )
-
     dt_est = courant_fac * jnp.min(jnp.array([dx, dy, dz])) / jnp.max(val_max)
-
     max_steps = int(jnp.ceil(t_stop / dt_est)) + 5
 
-    # @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
-    # def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
-    #     Mass, Momx, Momy, Momz, Energy, t, count = state
-    #     Mass, Momx, Momy, Momz, Energy, dt, rho = update(
-    #         Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac
-    #     )
-    #     t += dt
-    #     count += 1
-    #     return (Mass, Momx, Momy, Momz, Energy, t, count), None
+    print(f"Grid: {Nx}x{Ny}x{Nz}  |  max_steps estimated: {max_steps}")
 
-    # global_start = time.time()
-    # final_state, _ = jax.lax.scan(
-    #     lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
-    #     initial_state,
-    #     None,
-    #     length=max_steps
-    # )
-    
-    global_start = time.time()
-
-    state = initial_state
-    for _ in range(max_steps):
+    @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac"])
+    def scan_step(state, _, dx, dy, dz, gamma, courant_fac):
         Mass, Momx, Momy, Momz, Energy, t, count = state
         Mass, Momx, Momy, Momz, Energy, dt, rho = update(
             Mass, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac
         )
         t += dt
         count += 1
-        state = (Mass, Momx, Momy, Momz, Energy, t, count)
+        return (Mass, Momx, Momy, Momz, Energy, t, count), None
 
-    final_state = state
-    jax.block_until_ready(final_state)
-    global_end = time.time()
-        
-    t_final = final_state[5]
-    n_iter = final_state[6]
+    @partial(jax.jit, static_argnames=["dx", "dy", "dz", "gamma", "courant_fac", "max_steps"])
+    def run_simulation(initial_state, dx, dy, dz, gamma, courant_fac, max_steps):
+        return jax.lax.scan(
+            lambda s, _: scan_step(s, _, dx, dy, dz, gamma, courant_fac),
+            initial_state,
+            None,
+            length=max_steps
+        )
+
+    # -------------------------
+    # WARMUP  (compilation seule)
+    # -------------------------
+    t0 = time.perf_counter()
+    lowered = jax.jit(
+        run_simulation,
+        static_argnames=["dx", "dy", "dz", "gamma", "courant_fac", "max_steps"]
+    ).lower(initial_state, dx, dy, dz, gamma, courant_fac, max_steps)
+    compiled = lowered.compile()
+    compile_time = time.perf_counter() - t0
+
+    # Un premier run pour s'assurer que tout est chaud (caches GPU, etc.)
+    state, _ = compiled(initial_state)
+    jax.block_until_ready(state)
+
+    # -------------------------
+    # RUN CHRONOMÉTRÉ
+    # -------------------------
+    global_start = time.perf_counter()
+
+    state, _ = run_simulation(
+        initial_state, dx, dy, dz, gamma, courant_fac, max_steps
+    )
+    jax.block_until_ready(state)
+
+    global_end = time.perf_counter()
+
+    # KPIs
+    t_final    = state[5]
+    n_iter     = int(state[6])
     total_time = global_end - global_start
-    mcups = (Nx * Ny * Nz * int(n_iter)) / (1e6 * total_time)
-    
+    mcups      = (Nx * Ny * Nz * n_iter) / (1e6 * total_time)
+
     print("\nSimulation complete")
-    print(f"Final time reached: {float(t_final):.4f}")
-    print("nb_iterations:", n_iter)
-    print(f"Total runtime: {total_time:.2f} seconds")
-    print(f"Performance: {mcups:.2f} million cell updates per second (MCUPS)")
+    print(f"Final time reached : {float(t_final):.4f}")
+    print(f"nb_iterations      : {n_iter}")
+    print(f"Total runtime      : {total_time:.4f} s")
+    print(f"Performance        : {mcups:.2f} MCUPS")
+    print(f"Compilation time   : {compile_time:.2f} s")
+
 
 if __name__ == "__main__":
     args, config = load_config_and_args()
