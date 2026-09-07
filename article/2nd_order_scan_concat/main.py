@@ -20,6 +20,8 @@ from jax.sharding import Mesh, PartitionSpec, NamedSharding
 def main(args, config):
     USE_CPU_ONLY = args.cpu
 
+    print(f"jax.device_count() = {jax.device_count()}  |  devices: {jax.devices()}")
+
     IC = config["simulation"]["IC"]
     Nx = int(config["simulation"]["resolution_x"])
     Ny = int(config["simulation"]["resolution_y"])
@@ -47,7 +49,7 @@ def main(args, config):
     X, Y, Z = jnp.meshgrid(xlin, ylin, zlin, indexing="ij")
 
     n_devices = jax.device_count()
-    x_opt, y_opt, z_opt = optimal_3d_partition(n_devices)
+    x_opt, y_opt, z_opt = optimal_3d_partition(n_devices, Nx, Ny, Nz)
     mesh = Mesh(mesh_utils.create_device_mesh((x_opt, y_opt, z_opt)), ("x", "y", "z"))
     sharding = NamedSharding(mesh, PartitionSpec("x", "y", "z"))
 
