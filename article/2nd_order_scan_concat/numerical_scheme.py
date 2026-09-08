@@ -74,7 +74,17 @@ def update(rho, Momx, Momy, Momz, Energy, dx, dy, dz, gamma, courant_fac, Bx, By
     
     rho_prime = rho - 0.5 * dt * (rho * div_v + dot(v, grad_rho))
     P_prime = P - 0.5 * dt * (gamma * P * div_v + dot(v, grad_p))
-    
+
+    # Garde-fou de positivité : le predictor demi-pas MUSCL-Hancock n'a aucune
+    # garantie de positivité (contrairement à la reconstruction spatiale minmod,
+    # qui elle est TVD). Près d'une compression forte / d'un choc, la correction
+    # peut faire passer rho_prime ou P_prime sous zéro, ce qui donne ensuite un
+    # sqrt(negatif) -> NaN dans les vitesses d'onde. On retombe localement en
+    # premier ordre (valeur de la cellule non corrigée) plutôt que d'accepter
+    # un état non physique.
+    rho_prime = jnp.where(rho_prime > 0, rho_prime, rho)
+    P_prime = jnp.where(P_prime > 0, P_prime, P)
+
     vx_prime = vx - 0.5 * dt * (dot(v, grad_vx) + r * (P_dx + dot(B_dx,B) - dot(grad_Bx,B)))
     vy_prime = vy - 0.5 * dt * (dot(v, grad_vy) + r * (P_dy + dot(B_dy,B) - dot(grad_By,B)))
     vz_prime = vz - 0.5 * dt * (dot(v, grad_vz) + r * (P_dz + dot(B_dz,B) - dot(grad_Bz,B)))
